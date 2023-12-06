@@ -109,10 +109,13 @@ imprimir_vetor:
 	lw $s1,iterator
 	lw $s2,num_de_clientes
 	
-	la $s6,0
+	la $s6,0#reg para acessar as posições do vetor
+	li $t9,0
 	
 	###imprimindo vetor dos nomes dos clientes
 	begin_loop_nomes:
+    	#jal pula_linha
+    	
 	bge $s1,$s2,begin_loop_num_clintes
 	sll $s3,$s1,2 #s3=4*i
 	
@@ -131,13 +134,13 @@ imprimir_vetor:
  	# Usando $s6 para controlar o loop de impressão do número do cliente
     	bge $s6, $s2, begin_loop_vetor_cpf
     
-    	sll $s7, $s6, 2  # t6 = 4 * i
+    	sll $s7, $s6, 2  # t7 = 4 * i
     	addu $s7, $s7, $s4  # 4i = 4i + local de memoria do array clientes
     
-    	lw $a0, 0($s7)
+	
+	li $v0, 1#imprimindo num do cliente
+    	lw $a0, 0($s7)#$a0 acessa a posição 4i do vetor do num de clientes, as posições do vetor só são acessadas de 4 em 4
 	beqz $a0,begin_loop_vetor_cpf
-    
-    	li $v0, 1
     	syscall
     
     	addi $s6, $s6, 1
@@ -145,24 +148,33 @@ imprimir_vetor:
 
 	# imprimindo vetor do cpf
 	begin_loop_vetor_cpf:
-    	 # Usando $s6 para controlar o loop de impressão do cpf
-    	bge $s6, $s2, finalizar_programa
+    	# Usando $t9 para controlar o loop de impressão do cpf
+    	bge $t9, $s2, finalizar_programa
     
-    	sll $s3, $s6, 2  # t6 = 4 * i
-    	la $s7,0
-    	addu $s7, $s7, $s5  # 4i = 4i + local de memoria do array clientes
-    
-    	lw $a0, 0($s3)
+    	sll $t8, $t9, 2  # t8 = 4 * i
+    	addu $t8, $t8, $s5  # 4i = 4i + local de memoria do array clientes
+    	
+    	#pulando linha
+    	jal pula_linha
+    	
+	li $v0, 1
+    	lw $a0, 0($t8)
     	beqz $a0, finalizar_programa
     
-    	li $v0, 1
     	syscall
     
-    	addi $s6, $s6, 1
+    	addi $t9, $t9, 1
     	j begin_loop_vetor_cpf
 
 	j finalizar_programa
 
+
+pula_linha:
+	li $v0,4
+	la $a0,QUEBRA_LINHA
+	syscall
+	jr $ra
+	
 consultar_saldo:
     # Lógica para consultar o saldo
     # (substitua por sua implementação)
