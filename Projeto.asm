@@ -1,26 +1,26 @@
 .data
-MENU_PROMPT:   .asciiz "Escolha uma opção:\n1. Criar conta\n2. Saldo\n3. Depósito\n4. Saque\n5. Imprimir vetor\n6. Sair\nOpção: "
-SALDO_MSG:     .asciiz "Seu saldo é: $"
-DEPOSITO_MSG:  .asciiz "Digite o valor do depósito: $"
+MENU_PROMPT:   .asciiz "Escolha uma opÃ§Ã£o:\n1. Criar conta\n2. Saldo\n3. DepÃ³sito\n4. Saque\n5. Imprimir vetor\n6. Sair\nOpÃ§Ã£o: "
+SALDO_MSG:     .asciiz "Seu saldo Ã©: $"
+DEPOSITO_MSG:  .asciiz "Digite o valor do depÃ³sito: $"
 SAQUE_MSG:     .asciiz "Digite o valor do saque: $"
-INVALID_MSG:   .asciiz "Opção inválida. Tente novamente.\n"
+INVALID_MSG:   .asciiz "OpÃ§Ã£o invÃ¡lida. Tente novamente.\n"
 QUEBRA_LINHA:  .asciiz "\n"
 
 msg_Pedir_Nome: .asciiz "Digite seu nome:\n"
 nome: .space 40
 cpf: .space 40
-msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente números):\n"
+msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente nÃºmeros):\n"
 
-# Adicione a variável para armazenar o número da conta atual
+# Adicione a variÃ¡vel para armazenar o nÃºmero da conta atual
 conta_atual: .word 10000
-vetor_nomes_clientes: .space 52   # Espaço para armazenar até 50 clientes (cada cliente ocupa 4 posições)
+vetor_nomes_clientes: .space 52   # EspaÃ§o para armazenar atÃ© 50 clientes (cada cliente ocupa 4 posiÃ§Ãµes)
 vetor_numero_cliente:.space 52
 vetor_cpf_cliente:.space 52
 num_de_clientes:.word 2
 
 CPF_MSG:.asciiz "CPF:"
 NOME_MSG:.asciiz "Nome:"
-NUM_CONTA_MSG:.asciiz "Número da conta:"
+NUM_CONTA_MSG:.asciiz "NÃºmero da conta:"
 
 
 iterator:.word 0
@@ -36,12 +36,12 @@ menu:
     la $a0, MENU_PROMPT
     syscall
 
-    # Ler a opção do usuário
+    # Ler a opÃ§Ã£o do usuÃ¡rio
     li $v0, 5
     syscall
     move $t0, $v0
 
-    # Executar a opção escolhida
+    # Executar a opÃ§Ã£o escolhida
     beq $t0, 1, criar_conta
     beq $t0, 2, consultar_saldo
     beq $t0, 3, realizar_deposito
@@ -51,12 +51,12 @@ menu:
     j opcao_invalida
 
 criar_conta:
-	lw $t3,num_de_clientes#carregando o número de clientes disponíveis
+	lw $t3,num_de_clientes#carregando o nÃºmero de clientes disponÃ­veis
 	addi $t3,$t3,1
 	sw $t3,num_de_clientes
 	beq $t3,50,finalizar_programa#se o numero de clientes for igual a zero termina o programa
 	
-	# Incrementar o número da conta atual
+	# Incrementar o nÃºmero da conta atual
     	lw $t1, conta_atual
     	addi $t1, $t1, 1
    	sw $t1, conta_atual
@@ -66,15 +66,15 @@ criar_conta:
     	# registrador do vetor de numero do cliente
 	la $t4, vetor_numero_cliente
 
-	# Armazenar o número da conta
+	# Armazenar o nÃºmero da conta
 	move $a0,$t1
 	sw $a0, 0($t4)
 
-	# Solicitar o nome do usuário
+	# Solicitar o nome do usuÃ¡rio
 	li $v0, 4
 	la $a0, msg_Pedir_Nome
 	syscall
-        # Ler o nome do usuário
+        # Ler o nome do usuÃ¡rio
         
 	li $v0, 8
 	la $a0, nome
@@ -86,7 +86,7 @@ criar_conta:
     	# Armazenar o nome
 	sw $a0, 0($t5)
 
-	# Solicitar o CPF do usuário
+	# Solicitar o CPF do usuÃ¡rio
 	li $v0, 4
 	la $a0, msg_Pedir_CPF
 	syscall
@@ -109,6 +109,8 @@ imprimir_vetor:
 	lw $s1,iterator
 	lw $s2,num_de_clientes
 	
+	la $s6,0
+	
 	###imprimindo vetor dos nomes dos clientes
 	begin_loop_nomes:
 	bge $s1,$s2,begin_loop_num_clintes
@@ -124,9 +126,9 @@ imprimir_vetor:
 	addi $s1,$s1,1
 	j begin_loop_nomes
 	
-	# imprimindo vetor do número do cliente
+	# imprimindo vetor do nÃºmero do cliente
 	begin_loop_num_clintes:
-    	li $s6, 0  # Usando $s6 para controlar o loop de impressão do número do cliente
+ 	# Usando $s6 para controlar o loop de impressÃ£o do nÃºmero do cliente
     	bge $s6, $s2, begin_loop_vetor_cpf
     
     	sll $s7, $s6, 2  # t6 = 4 * i
@@ -143,7 +145,7 @@ imprimir_vetor:
 
 	# imprimindo vetor do cpf
 	begin_loop_vetor_cpf:
-    	li $s6, 0  # Usando $s6 para controlar o loop de impressão do cpf
+    	 # Usando $s6 para controlar o loop de impressÃ£o do cpf
     	bge $s6, $s2, finalizar_programa
     
     	sll $s3, $s6, 2  # t6 = 4 * i
@@ -162,28 +164,28 @@ imprimir_vetor:
 	j finalizar_programa
 
 consultar_saldo:
-    # Lógica para consultar o saldo
-    # (substitua por sua implementação)
+    # LÃ³gica para consultar o saldo
+    # (substitua por sua implementaÃ§Ã£o)
     j menu
 
 realizar_deposito:
-    # Lógica para realizar um depósito
-    # (substitua por sua implementação)
+    # LÃ³gica para realizar um depÃ³sito
+    # (substitua por sua implementaÃ§Ã£o)
     j menu
 
 realizar_saque:
-    # Lógica para realizar um saque
-    # (substitua por sua implementação)
+    # LÃ³gica para realizar um saque
+    # (substitua por sua implementaÃ§Ã£o)
     j menu
 
 sair:
-    # Lógica para encerrar o programa
-    # (substitua por sua implementação)
+    # LÃ³gica para encerrar o programa
+    # (substitua por sua implementaÃ§Ã£o)
     li $v0, 10
     syscall
 
 opcao_invalida:
-    # Mensagem para opção inválida
+    # Mensagem para opÃ§Ã£o invÃ¡lida
     li $v0, 4
     la $a0, INVALID_MSG
     syscall
