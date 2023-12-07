@@ -13,14 +13,12 @@ msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente números):\n"
 
 # Adicione a variável para armazenar o número da conta atual
 conta_atual: .word 10000
-vetor_nomes_clientes: .space 52   # Espaço para armazenar até 50 clientes (cada cliente ocupa 4 posições)
-vetor_numero_cliente:.space 52
-vetor_cpf_cliente:.space 52
-num_de_clientes:.word 2
+vetor_nomes_clientes: .space 200   # Espaço para armazenar até 50 clientes (cada cliente ocupa 4 posições)
+vetor_numero_cliente:.space 200
+vetor_cpf_cliente:.space 200
+num_de_clientes:.word 0
 
-CPF_MSG:.asciiz "CPF:"
-NOME_MSG:.asciiz "Nome:"
-NUM_CONTA_MSG:.asciiz "Número da conta:"
+msg_cpf_ja_existente:.asciiz "Impossível criar conta, esse cpf já foi cadastrado!"
 
 
 iterator:.word 0
@@ -52,6 +50,8 @@ menu:
 
 criar_conta:
 	lw $t3,num_de_clientes#carregando o número de clientes disponíveis
+	li $t7,4#guardando para poder servir de iterador quando for ir criando usuários
+	mul $t7,$t7,$t3 #fazendo $t7= 4*i para guardar corretamente os valores na posição do vetor
 	addi $t3,$t3,1
 	sw $t3,num_de_clientes
 	beq $t3,50,finalizar_programa#se o numero de clientes for igual a zero termina o programa
@@ -66,6 +66,8 @@ criar_conta:
     	# registrador do vetor de numero do cliente
 	la $t4, vetor_numero_cliente
 
+
+    	add $t4, $t4, $t7  # $t4 agora contém o endereço desejado
 	# Armazenar o número da conta
 	move $a0,$t1
 	sw $a0, 0($t4)
@@ -83,8 +85,9 @@ criar_conta:
     	
     	#registrador do vetor de nomes dos clientes
     	la $t5,vetor_nomes_clientes
+    	add $t5,$t5,$t7# $t5 agora contém o endereço desejado
     	# Armazenar o nome
-	sw $a0, 0($t5)
+	sw $a0, 0($t5)#ajeitando e a cada iteração colocando na posição 4i
 
 	# Solicitar o CPF do usuário
 	li $v0, 4
@@ -94,11 +97,26 @@ criar_conta:
 	li $v0, 8
 	la $a0, cpf
    	la $a1, 40
+   	syscall
+   	
+   	##verificar se o cpf já existe
+   	jal verifica_cpf
+   	continua:
+   	
+   	#colocando denovo o valor de $t7 para ser um multiplo de 4=4i, pois ele mudou de valor quando ele foi para
+   	# a função verifica_cpf
+   	move $t3,$zero
+   	lw $t3,num_de_clientes
+   	la $a0,cpf
+   	subi $t3,$t3,1
+   	li $t7,4
+   	mul $t7,$t7,$t3
    	
    	#registrador para vetor_cpf_cliente
    	la $t6,vetor_cpf_cliente
+   	add $t6,$t6,$t7#ajeitando e a cada iteração colocando na posição 4i
    	sw $a0,0($t6)
-    	syscall
+
 
     j finalizar_programa
 
@@ -140,6 +158,7 @@ imprimir_vetor:
 	
 	li $v0, 1#imprimindo num do cliente
     	lw $a0, 0($s7)#$a0 acessa a posição 4i do vetor do num de clientes, as posições do vetor só são acessadas de 4 em 4
+
 	beqz $a0,begin_loop_vetor_cpf
     	syscall
     
@@ -155,9 +174,9 @@ imprimir_vetor:
     	addu $t8, $t8, $s5  # 4i = 4i + local de memoria do array clientes
     	
     	#pulando linha
-    	jal pula_linha
+	jal pula_linha
     	
-	li $v0, 1
+	li $v0, 4
     	lw $a0, 0($t8)
     	beqz $a0, finalizar_programa
     
@@ -174,6 +193,27 @@ pula_linha:
 	la $a0,QUEBRA_LINHA
 	syscall
 	jr $ra
+	
+verifica_cpf:
+	#pega o cpf e move para $t0
+	move $t0,$a0
+	
+	li $t1,0
+	lw $t2,num_de_clientes
+	la $s1,vetor_cpf_cliente
+	
+	loop_verifica:
+	beq $t1,$t2,continua
+	sll $t3,$t1,2 #$t3=4i
+	
+	addu $t3,$t3,$s1
+	
+	lw $a0,0($t3)
+	
+	beq $t0,$a0,cpf_ja_existente
+	addi $t1,$t1,1
+	j loop_verifica
+	
 	
 consultar_saldo:
     # Lógica para consultar o saldo
@@ -203,6 +243,14 @@ opcao_invalida:
     syscall
 
     j menu
+    
+    cpf_ja_existente:
+    # Mensagem para opção inválida
+    li $v0, 4
+    la $a0,msg_cpf_ja_existente
+    syscall
+
+    jal continua
 
 finalizar_programa:
     j menu
