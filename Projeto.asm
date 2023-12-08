@@ -14,9 +14,25 @@ msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente números):\n"
 # Adicione a variável para armazenar o número da conta atual
 conta_atual: .word 10000
 vetor_nomes_clientes: .space 200   # Espaço para armazenar até 50 clientes (cada cliente ocupa 4 posições)
-vetor_numero_cliente:.space 200
-vetor_cpf_cliente:.space 200
-num_de_clientes:.word 0
+vetor_numero_cliente: .space 200
+vetor_cpf_cliente: .space 200
+vetor_saldo_cliente: .space 200
+vetor_credito_cliente: .space 200
+num_de_clientes: .word 0
+
+# Vetores para guardar dados de transações de debito
+vetor_conta_origem_debito: .space 200
+vetor_conta_destino_debito: .space 200
+vetor_valor_trasacao_debito: .space 200
+vetor_data_transacao_debito: .space 200
+num_de_transacoes_debito: .word 0
+
+# Vetores para guardar dados de transações de credito
+vetor_conta_origem_credito: .space 200
+vetor_conta_destino_credito: .space 200
+vetor_valor_trasacao_credito: .space 200
+vetor_data_transacao_credito: .space 200
+num_de_transacoes_credito: .word 0
 
 msg_cpf_ja_existente:.asciiz "Impossível criar conta, esse cpf já foi cadastrado!"
 
@@ -45,16 +61,18 @@ menu:
     beq $t0, 3, realizar_deposito
     beq $t0, 4, realizar_saque
     beq $t0, 5, imprimir_vetor
-    beq $t0, 6, sair
+    beq $t0, 6, imprimir_trasacoes_debito
+    beq $t0, 7, imprimir_transacoes_credito
+    beq $t0, 8, sair
     j opcao_invalida
 
 criar_conta:
-	lw $t3,num_de_clientes#carregando o número de clientes disponíveis
-	li $t7,4#guardando para poder servir de iterador quando for ir criando usuários
+	lw $t3,num_de_clientes #carregando o número de clientes disponíveis
+	li $t7,4 #guardando para poder servir de iterador quando for ir criando usuários
 	mul $t7,$t7,$t3 #fazendo $t7= 4*i para guardar corretamente os valores na posição do vetor
 	addi $t3,$t3,1
 	sw $t3,num_de_clientes
-	beq $t3,50,finalizar_programa#se o numero de clientes for igual a zero termina o programa
+	beq $t3,50,finalizar_programa #se o numero de clientes for igual a zero termina o programa
 	
 	# Incrementar o número da conta atual
     	lw $t1, conta_atual
@@ -187,13 +205,100 @@ imprimir_vetor:
 
 	j finalizar_programa
 
+imprimir_trasacoes_debito:
+	# -----------------------------------------------------------------------------------
+	# Função que imprime todas as transações de débito de um cliente através do seu CPF
+
+	# Variáveis
+		# $a0: guarda o CPF digitado
+		# $t1: tamanho do vetor de transações
+		# $t2: índice de controle do laço
+		# $t3: retorno da função strcmp
+	# -----------------------------------------------------------------------------------
+
+	# Solicitar o CPF do usuário
+	li $v0, 4
+	la $a0, msg_Pedir_CPF
+	syscall
+	
+	li $v0, 8
+	la $a0, cpf
+   	la $a1, 40
+   	syscall
+   	
+	lw $t1, num_de_transacoes_debito # carregando o numero de transações de débito feitas
+	li $t2, 0 # inicializando indice do loop
+	inicio_loop_trasacoes_debito:
+		bge $t2, $t1, fim_loop_trasacoes_debito # verificando a condição do loop
+		j strcmp # comparando o CPF digitado com os CPF's de cada transação
+		beq $t3, $zero, imprimir_trasacao_debito # Comparando o retorno da strcmp e imprimindo cada transação caso os CPF's deem match
+		addi $t2, $t2, 1 # incrementando a variável de controle
+		j inicio_loop_trasacoes_debito # volta para o início do loop para verificar condição de parada
+	fim_loop_trasacoes_debito:
+		j menu # volta para o menu
+	
+imprimir_trasacao_debito:
+	# -----------------------------------------------------------------------------------
+	# Função que imprime uma transação de débito
+	# -----------------------------------------------------------------------------------
+	
+imprimir_trasacoes_credito:
+	# -----------------------------------------------------------------------------------
+	# Função que imprime todas as transações de crédito de um cliente através do seu CPF
+
+	# Variáveis
+		# $a0: guarda o CPF digitado
+		# $t1: tamanho do vetor de transações
+		# $t2: índice de controle do laço
+		# $t3: retorno da função strcmp
+	# -----------------------------------------------------------------------------------
+	
+	# Solicitar o CPF do usuário
+	li $v0, 4
+	la $a0, msg_Pedir_CPF
+	syscall
+	
+	li $v0, 8
+	la $a0, cpf
+   	la $a1, 40
+   	syscall
+   	
+	lw $t1, num_de_transacoes_credito # carregando o numero de transações de débito feitas
+	li $t2, 0 # inicializando indice do loop
+	inicio_loop_trasacoes_credito:
+		bge $t2, $t1, fim_loop_trasacoes_credito # verificando a condição do loop
+		j strcmp # comparando o CPF digitado com os CPF's de cada transação
+		beq $t3, $zero, imprimir_trasacao_credito # Comparando o retorno da strcmp e imprimindo cada transação caso os CPF's deem match
+		addi $t2, $t2, 1 # incrementando a variável de controle
+		j inicio_loop_trasacoes_credito # volta para o início do loop para verificar condição de parada
+	fim_loop_trasacoes_credito:
+		j menu # volta para o menu
+
+imprimir_trasacao_credito:
+	# -----------------------------------------------------------------------------------
+	# Função que imprime uma transação de crédito
+	# -----------------------------------------------------------------------------------
+	
+strcmp:
+	# -----------------------------------------------------------------------------------
+	# Função que compara duas strings
+		
+	#Parametros:
+		# Str1 -> $a0(CPF que foi digitado)
+		# Str2 -> vetor_conta_origem_debito[$t2](CPF de origem da transação atual do loop)
+	#Retorno da função no deve ser colocado no $t3
+		# 0 caso as strings sejam iguais
+		# negativo se a primeira for menor que a segunda
+		# positivo se a primeira for maior que a segunda
+	# -----------------------------------------------------------------------------------
+
 
 pula_linha:
 	li $v0,4
 	la $a0,QUEBRA_LINHA
 	syscall
-	jr $ra
-	
+	jr $ra		
+			
 verifica_cpf:
 	#pega o cpf e move para $t0
 	move $t0,$a0
