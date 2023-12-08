@@ -1,40 +1,40 @@
 .data
-MENU_PROMPT:   .asciiz "Escolha uma opção:\n1. Criar conta\n2. Saldo\n3. Depósito\n4. Saque\n5. Imprimir vetor\n6. Sair\nOpção: "
-SALDO_MSG:     .asciiz "Seu saldo é: $"
-DEPOSITO_MSG:  .asciiz "Digite o valor do depósito: $"
+MENU_PROMPT:   .asciiz "Escolha uma opÃ§Ã£o:\n1. Criar conta\n2. Saldo\n3. DepÃ³sito\n4. Saque\n5. Imprimir vetor\n6. Sair\nOpÃ§Ã£o: "
+SALDO_MSG:     .asciiz "Seu saldo Ã©: $"
+DEPOSITO_MSG:  .asciiz "Digite o valor do depÃ³sito: $"
 SAQUE_MSG:     .asciiz "Digite o valor do saque: $"
-INVALID_MSG:   .asciiz "Opção inválida. Tente novamente.\n"
+INVALID_MSG:   .asciiz "OpÃ§Ã£o invÃ¡lida. Tente novamente.\n"
 QUEBRA_LINHA:  .asciiz "\n"
 
 msg_Pedir_Nome: .asciiz "Digite seu nome:\n"
 nome: .space 40
 cpf: .space 40
-msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente números):\n"
+msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente nÃºmeros):\n"
 
-# Adicione a variável para armazenar o número da conta atual
+# Adicione a variÃ¡vel para armazenar o nÃºmero da conta atual
 conta_atual: .word 10000
-vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada cliente ocupa 4 posições)
+vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada cliente ocupa 4 posiÃ§Ãµes)
 vetor_numero_cliente: .space 200
 vetor_cpf_cliente: .space 200
 vetor_saldo_cliente: .space 200
 vetor_credito_cliente: .space 200
 num_de_clientes: .word 0
 
-# Vetores para guardar dados de transações de debito
+# Vetores para guardar dados de transaÃ§Ãµes de debito
 vetor_conta_origem_debito: .space 1000
 vetor_conta_destino_debito: .space 1000
 vetor_valor_trasacao_debito: .space 1000
 vetor_data_transacao_debito: .space 1000
 num_de_transacoes_debito: .word 0
 
-# Vetores para guardar dados de transações de credito
+# Vetores para guardar dados de transaÃ§Ãµes de credito
 vetor_conta_origem_credito: .space 1000
 vetor_conta_destino_credito: .space 1000
 vetor_valor_trasacao_credito: .space 1000
 vetor_data_transacao_credito: .space 1000
 num_de_transacoes_credito: .word 0
 
-msg_cpf_ja_existente:.asciiz "Impossível criar conta, esse cpf já foi cadastrado!"
+msg_cpf_ja_existente:.asciiz "ImpossÃ­vel criar conta, esse cpf jÃ¡ foi cadastrado!"
 
 
 iterator:.word 0
@@ -50,12 +50,12 @@ menu:
     la $a0, MENU_PROMPT
     syscall
 
-    # Ler a opção do usuário
+    # Ler a opÃ§Ã£o do usuÃ¡rio
     li $v0, 5
     syscall
     move $t0, $v0
 
-    # Executar a opção escolhida
+    # Executar a opÃ§Ã£o escolhida
     beq $t0, 1, criar_conta
     beq $t0, 2, consultar_saldo
     beq $t0, 3, realizar_deposito
@@ -67,17 +67,17 @@ menu:
     j opcao_invalida
 
 # --------------------------------------------------------------------------------
-# Op��o 1 do menu
+# Opção 1 do menu
 # --------------------------------------------------------------------------------
 criar_conta:
-	lw $t3,num_de_clientes #carregando o número de clientes disponíveis
-	li $t7,4 #guardando para poder servir de iterador quando for ir criando usuários
-	mul $t7,$t7,$t3 #fazendo $t7= 4*i para guardar corretamente os valores na posição do vetor
+	lw $t3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
+	li $t7,4 #guardando para poder servir de iterador quando for ir criando usuÃ¡rios
+	mul $t7,$t7,$t3 #fazendo $t7= 4*i para guardar corretamente os valores na posiÃ§Ã£o do vetor
 	addi $t3,$t3,1
 	sw $t3,num_de_clientes
 	beq $t3,50,menu #se o numero de clientes for igual a zero termina o programa
 	
-	# Incrementar o número da conta atual
+	# Incrementar o nÃºmero da conta atual
     	lw $t1, conta_atual
     	addi $t1, $t1, 1
    	sw $t1, conta_atual
@@ -88,16 +88,16 @@ criar_conta:
 	la $t4, vetor_numero_cliente
 
 
-    	add $t4, $t4, $t7  # $t4 agora contém o endereço desejado
-	# Armazenar o número da conta
+    	add $t4, $t4, $t7  # $t4 agora contÃ©m o endereÃ§o desejado
+	# Armazenar o nÃºmero da conta
 	move $a0,$t1
 	sw $a0, 0($t4)
 
-	# Solicitar o nome do usuário
+	# Solicitar o nome do usuÃ¡rio
 	li $v0, 4
 	la $a0, msg_Pedir_Nome
 	syscall
-        # Ler o nome do usuário
+        # Ler o nome do usuÃ¡rio
         
 	li $v0, 8
 	la $a0, nome
@@ -106,11 +106,11 @@ criar_conta:
     	
     	#registrador do vetor de nomes dos clientes
     	la $t5,vetor_nomes_clientes
-    	add $t5,$t5,$t7# $t5 agora contém o endereço desejado
+    	add $t5,$t5,$t7# $t5 agora contÃ©m o endereÃ§o desejado
     	# Armazenar o nome
-	sw $a0, 0($t5)#ajeitando e a cada iteração colocando na posição 4i
+	sw $a0, 0($t5)#ajeitando e a cada iteraÃ§Ã£o colocando na posiÃ§Ã£o 4i
 
-	# Solicitar o CPF do usuário
+	# Solicitar o CPF do usuÃ¡rio
 	li $v0, 4
 	la $a0, msg_Pedir_CPF
 	syscall
@@ -120,12 +120,12 @@ criar_conta:
    	la $a1, 40
    	syscall
    	
-   	##verificar se o cpf já existe
+   	##verificar se o cpf jÃ¡ existe
    	jal verifica_cpf
    	continua:
    	
    	#colocando denovo o valor de $t7 para ser um multiplo de 4=4i, pois ele mudou de valor quando ele foi para
-   	# a função verifica_cpf
+   	# a funÃ§Ã£o verifica_cpf
    	move $t3,$zero
    	lw $t3,num_de_clientes
    	la $a0,cpf
@@ -135,38 +135,38 @@ criar_conta:
    	
    	#registrador para vetor_cpf_cliente
    	la $t6,vetor_cpf_cliente
-   	add $t6,$t6,$t7#ajeitando e a cada iteração colocando na posição 4i
+   	add $t6,$t6,$t7#ajeitando e a cada iteraÃ§Ã£o colocando na posiÃ§Ã£o 4i
    	sw $a0,0($t6)
 
 
     j menu
 
 # --------------------------------------------------------------------------------
-# Op��o 2 do menu
+# Opção 2 do menu
 # --------------------------------------------------------------------------------
 consultar_saldo:
-    # Lógica para consultar o saldo
-    # (substitua por sua implementação)
+    # LÃ³gica para consultar o saldo
+    # (substitua por sua implementaÃ§Ã£o)
     j menu
 
 # --------------------------------------------------------------------------------
-# Op��o 3 do menu
+# Opção 3 do menu
 # --------------------------------------------------------------------------------
 realizar_deposito:
-    # Lógica para realizar um depósito
-    # (substitua por sua implementação)
+    # LÃ³gica para realizar um depÃ³sito
+    # (substitua por sua implementaÃ§Ã£o)
     j menu
 
 # --------------------------------------------------------------------------------
-# Op��o 4 do menu
+# Opção 4 do menu
 # --------------------------------------------------------------------------------
 realizar_saque:
-    # Lógica para realizar um saque
-    # (substitua por sua implementação)
+    # LÃ³gica para realizar um saque
+    # (substitua por sua implementaÃ§Ã£o)
     j menu
 
 # --------------------------------------------------------------------------------
-# Op��o 5 do menu
+# Opção 5 do menu
 # --------------------------------------------------------------------------------
 imprimir_vetor:
 	la $t4,vetor_nomes_clientes
@@ -175,7 +175,7 @@ imprimir_vetor:
 	lw $s1,iterator
 	lw $s2,num_de_clientes
 	
-	la $s6,0#reg para acessar as posições do vetor
+	la $s6,0#reg para acessar as posiÃ§Ãµes do vetor
 	li $t9,0
 	
 	###imprimindo vetor dos nomes dos clientes
@@ -195,9 +195,9 @@ imprimir_vetor:
 	addi $s1,$s1,1
 	j begin_loop_nomes
 	
-	# imprimindo vetor do número do cliente
+	# imprimindo vetor do nÃºmero do cliente
 	begin_loop_num_clintes:
- 	# Usando $s6 para controlar o loop de impressão do número do cliente
+ 	# Usando $s6 para controlar o loop de impressÃ£o do nÃºmero do cliente
     	bge $s6, $s2, begin_loop_vetor_cpf
     
     	sll $s7, $s6, 2  # t7 = 4 * i
@@ -205,7 +205,7 @@ imprimir_vetor:
     
 	
 	li $v0, 1 #imprimindo num do cliente
-    	lw $a0, 0($s7) #$a0 acessa a posicao 4i do vetor do num de clientes, as posicoes do vetor só são acessadas de 4 em 4
+    	lw $a0, 0($s7) #$a0 acessa a posicao 4i do vetor do num de clientes, as posicoes do vetor sÃ³ sÃ£o acessadas de 4 em 4
 
 	beqz $a0,begin_loop_vetor_cpf
     	syscall
@@ -236,7 +236,7 @@ imprimir_vetor:
 	j menu
 
 # --------------------------------------------------------------------------------
-# Op��o 6 do menu
+# Opção 6 do menu
 # --------------------------------------------------------------------------------
 imprimir_trasacoes_debito:
 	# -----------------------------------------------------------------------------------
@@ -246,10 +246,10 @@ imprimir_trasacoes_debito:
 		# $a0: guarda o CPF digitado
 		# $t1: tamanho do vetor de transacoes
 		# $t2: Indice de controle do laco
-		# $t3: retorno da função strcmp
+		# $t3: retorno da funÃ§Ã£o strcmp
 	# -----------------------------------------------------------------------------------
 
-	# Solicitar o CPF do usuário
+	# Solicitar o CPF do usuÃ¡rio
 	li $v0, 4
 	la $a0, msg_Pedir_CPF
 	syscall
@@ -273,7 +273,7 @@ imprimir_trasacoes_debito:
 	
 imprimir_trasacao_debito:
 	# -----------------------------------------------------------------------------------
-	# Função que imprime uma transação de débito
+	# FunÃ§Ã£o que imprime uma transaÃ§Ã£o de dÃ©bito
 	# -----------------------------------------------------------------------------------
 	
 	# Carregando os vetores de interesse
@@ -282,7 +282,7 @@ imprimir_trasacao_debito:
 	la $s3, vetor_valor_trasacao_debito
 	la $s4, vetor_data_transacao_debito
 	
-	move $t4, $t2 # guardando em $t4 o �ndice dos dados que queremos imprimir
+	move $t4, $t2 # guardando em $t4 o índice dos dados que queremos imprimir
 	sll $t4, $t4, 2 # $t4 = $t4 * 4(calculando o deslocamento)
 	
 	addu $s1, $s1, $t4 # somando o deslocamento com a base do vetor
@@ -312,7 +312,7 @@ imprimir_trasacao_debito:
     	j continua_loop_trasacoes_debito
 
 # --------------------------------------------------------------------------------
-# Op��o 7 do menu
+# Opção 7 do menu
 # --------------------------------------------------------------------------------
 imprimir_trasacoes_credito:
 	# -----------------------------------------------------------------------------------
@@ -386,9 +386,127 @@ imprimir_trasacao_credito:
     	syscall
     	
     	j continua_loop_trasacoes_credito
-
+    	
 # --------------------------------------------------------------------------------
-# Op��o sair/op��o inv�lida do menu
+# Funções de setar o as posições não ocupadas dos vetor de saldo do cliente
+# --------------------------------------------------------------------------------
+setar_valores_vetor_de_saldo_dos_clientes:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_saldo_cliente #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_saldo:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_saldo
+	
+	#se o valor não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 0
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_saldo
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de credito do cliente
+# --------------------------------------------------------------------------------
+setar_valores_vetor_de_credito_dos_clientes:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_credito_cliente #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_credito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_credito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,1500 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_credito
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de nomes dos clientes
+# --------------------------------------------------------------------------------
+setar_valores_vetor_de_nomes_dos_clientes:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_nomes_clientes #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_nomes:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lb $a0,0($s2)# recebendo em $a0 o valor da posição do array (um caractere)
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_nomes
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sb $a0,0($t0)
+	
+	j begin_loop_vetor_nomes
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de cpf dos clientes
+# --------------------------------------------------------------------------------
+setar_valores_vetor_de_cpf_dos_clientes:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_cpf_cliente #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_cpf:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lb $a0,0($s2)# recebendo em $a0 o valor da posição do array (um caractere)
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_cpf
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sb $a0,0($t0)
+	
+	j begin_loop_vetor_cpf
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de numero do cliente
+# --------------------------------------------------------------------------------
+setar_valores_vetor_de_numero_da_conta_dos_clientes:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_numero_cliente #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_num_do_cliente:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_num_do_cliente
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_num_do_cliente
+# --------------------------------------------------------------------------------
+# Opção sair/opção inválida do menu
 # --------------------------------------------------------------------------------
 sair:
     # Logica para encerrar o programa
@@ -413,7 +531,7 @@ opcao_invalida:
     jal continua
 
 # --------------------------------------------------------------------------------
-# Fun��es de manipula��o de string "String.h"
+# Funções de manipulação de string "String.h"
 # --------------------------------------------------------------------------------
 strcmp:
 	# -----------------------------------------------------------------------------------
@@ -429,7 +547,7 @@ strcmp:
 	# -----------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------
-# Fun��es auxiliares
+# Funções auxiliares
 # --------------------------------------------------------------------------------
 pula_linha:
 	li $v0,4
