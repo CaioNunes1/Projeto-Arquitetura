@@ -13,7 +13,7 @@ msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente números):\n"
 
 # Adicione a variável para armazenar o número da conta atual
 conta_atual: .word 10000
-vetor_nomes_clientes: .space 200   # Espaço para armazenar até 50 clientes (cada cliente ocupa 4 posições)
+vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada cliente ocupa 4 posições)
 vetor_numero_cliente: .space 200
 vetor_cpf_cliente: .space 200
 vetor_saldo_cliente: .space 200
@@ -21,17 +21,17 @@ vetor_credito_cliente: .space 200
 num_de_clientes: .word 0
 
 # Vetores para guardar dados de transações de debito
-vetor_conta_origem_debito: .space 200
-vetor_conta_destino_debito: .space 200
-vetor_valor_trasacao_debito: .space 200
-vetor_data_transacao_debito: .space 200
+vetor_conta_origem_debito: .space 1000
+vetor_conta_destino_debito: .space 1000
+vetor_valor_trasacao_debito: .space 1000
+vetor_data_transacao_debito: .space 1000
 num_de_transacoes_debito: .word 0
 
 # Vetores para guardar dados de transações de credito
-vetor_conta_origem_credito: .space 200
-vetor_conta_destino_credito: .space 200
-vetor_valor_trasacao_credito: .space 200
-vetor_data_transacao_credito: .space 200
+vetor_conta_origem_credito: .space 1000
+vetor_conta_destino_credito: .space 1000
+vetor_valor_trasacao_credito: .space 1000
+vetor_data_transacao_credito: .space 1000
 num_de_transacoes_credito: .word 0
 
 msg_cpf_ja_existente:.asciiz "Impossível criar conta, esse cpf já foi cadastrado!"
@@ -60,19 +60,22 @@ menu:
     beq $t0, 2, consultar_saldo
     beq $t0, 3, realizar_deposito
     beq $t0, 4, realizar_saque
-    beq $t0, 5, imprimir_vetor
+    beq $t0, 5, imprimir_vetor # apenas de teste
     beq $t0, 6, imprimir_trasacoes_debito
     beq $t0, 7, imprimir_transacoes_credito
     beq $t0, 8, sair
     j opcao_invalida
 
+# --------------------------------------------------------------------------------
+# Op��o 1 do menu
+# --------------------------------------------------------------------------------
 criar_conta:
 	lw $t3,num_de_clientes #carregando o número de clientes disponíveis
 	li $t7,4 #guardando para poder servir de iterador quando for ir criando usuários
 	mul $t7,$t7,$t3 #fazendo $t7= 4*i para guardar corretamente os valores na posição do vetor
 	addi $t3,$t3,1
 	sw $t3,num_de_clientes
-	beq $t3,50,finalizar_programa #se o numero de clientes for igual a zero termina o programa
+	beq $t3,50,menu #se o numero de clientes for igual a zero termina o programa
 	
 	# Incrementar o número da conta atual
     	lw $t1, conta_atual
@@ -136,8 +139,35 @@ criar_conta:
    	sw $a0,0($t6)
 
 
-    j finalizar_programa
+    j menu
 
+# --------------------------------------------------------------------------------
+# Op��o 2 do menu
+# --------------------------------------------------------------------------------
+consultar_saldo:
+    # Lógica para consultar o saldo
+    # (substitua por sua implementação)
+    j menu
+
+# --------------------------------------------------------------------------------
+# Op��o 3 do menu
+# --------------------------------------------------------------------------------
+realizar_deposito:
+    # Lógica para realizar um depósito
+    # (substitua por sua implementação)
+    j menu
+
+# --------------------------------------------------------------------------------
+# Op��o 4 do menu
+# --------------------------------------------------------------------------------
+realizar_saque:
+    # Lógica para realizar um saque
+    # (substitua por sua implementação)
+    j menu
+
+# --------------------------------------------------------------------------------
+# Op��o 5 do menu
+# --------------------------------------------------------------------------------
 imprimir_vetor:
 	la $t4,vetor_nomes_clientes
 	la $s4,vetor_numero_cliente
@@ -174,8 +204,8 @@ imprimir_vetor:
     	addu $s7, $s7, $s4  # 4i = 4i + local de memoria do array clientes
     
 	
-	li $v0, 1#imprimindo num do cliente
-    	lw $a0, 0($s7)#$a0 acessa a posição 4i do vetor do num de clientes, as posições do vetor só são acessadas de 4 em 4
+	li $v0, 1 #imprimindo num do cliente
+    	lw $a0, 0($s7) #$a0 acessa a posicao 4i do vetor do num de clientes, as posicoes do vetor só são acessadas de 4 em 4
 
 	beqz $a0,begin_loop_vetor_cpf
     	syscall
@@ -185,8 +215,8 @@ imprimir_vetor:
 
 	# imprimindo vetor do cpf
 	begin_loop_vetor_cpf:
-    	# Usando $t9 para controlar o loop de impressão do cpf
-    	bge $t9, $s2, finalizar_programa
+    	# Usando $t9 para controlar o loop de impressao do cpf
+    	bge $t9, $s2, menu
     
     	sll $t8, $t9, 2  # t8 = 4 * i
     	addu $t8, $t8, $s5  # 4i = 4i + local de memoria do array clientes
@@ -196,23 +226,26 @@ imprimir_vetor:
     	
 	li $v0, 4
     	lw $a0, 0($t8)
-    	beqz $a0, finalizar_programa
+    	beqz $a0, menu
     
     	syscall
     
     	addi $t9, $t9, 1
     	j begin_loop_vetor_cpf
 
-	j finalizar_programa
+	j menu
 
+# --------------------------------------------------------------------------------
+# Op��o 6 do menu
+# --------------------------------------------------------------------------------
 imprimir_trasacoes_debito:
 	# -----------------------------------------------------------------------------------
-	# Função que imprime todas as transações de débito de um cliente através do seu CPF
+	# Funcao que imprime todas as transacoes de debito de um cliente atraves do seu CPF
 
-	# Variáveis
+	# Variaveis
 		# $a0: guarda o CPF digitado
-		# $t1: tamanho do vetor de transações
-		# $t2: índice de controle do laço
+		# $t1: tamanho do vetor de transacoes
+		# $t2: Indice de controle do laco
 		# $t3: retorno da função strcmp
 	# -----------------------------------------------------------------------------------
 
@@ -226,14 +259,15 @@ imprimir_trasacoes_debito:
    	la $a1, 40
    	syscall
    	
-	lw $t1, num_de_transacoes_debito # carregando o numero de transações de débito feitas
+	lw $t1, num_de_transacoes_debito # carregando o numero de transacoes de debito feitas
 	li $t2, 0 # inicializando indice do loop
 	inicio_loop_trasacoes_debito:
-		bge $t2, $t1, fim_loop_trasacoes_debito # verificando a condição do loop
-		j strcmp # comparando o CPF digitado com os CPF's de cada transação
-		beq $t3, $zero, imprimir_trasacao_debito # Comparando o retorno da strcmp e imprimindo cada transação caso os CPF's deem match
-		addi $t2, $t2, 1 # incrementando a variável de controle
-		j inicio_loop_trasacoes_debito # volta para o início do loop para verificar condição de parada
+		bge $t2, $t1, fim_loop_trasacoes_debito # verificando a condicao do loop
+		j strcmp # comparando o CPF digitado com os CPF's de cada transacao
+		beq $t3, $zero, imprimir_trasacao_debito # Comparando o retorno da strcmp e imprimindo cada transacao caso os CPF's deem match
+		continua_loop_trasacoes_debito:
+		addi $t2, $t2, 1 # incrementando a variavel de controle
+		j inicio_loop_trasacoes_debito # volta para o inicio do loop para verificar condicao de parada
 	fim_loop_trasacoes_debito:
 		j menu # volta para o menu
 	
@@ -242,18 +276,56 @@ imprimir_trasacao_debito:
 	# Função que imprime uma transação de débito
 	# -----------------------------------------------------------------------------------
 	
+	# Carregando os vetores de interesse
+	la $s1, vetor_conta_origem_debito
+	la $s2, vetor_conta_destino_debito
+	la $s3, vetor_valor_trasacao_debito
+	la $s4, vetor_data_transacao_debito
+	
+	move $t4, $t2 # guardando em $t4 o �ndice dos dados que queremos imprimir
+	sll $t4, $t4, 2 # $t4 = $t4 * 4(calculando o deslocamento)
+	
+	addu $s1, $s1, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s1)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	addu $s2, $s2, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s2)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	addu $s3, $s3, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s3)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	addu $s4, $s4, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s4)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	j continua_loop_trasacoes_debito
+
+# --------------------------------------------------------------------------------
+# Op��o 7 do menu
+# --------------------------------------------------------------------------------
 imprimir_trasacoes_credito:
 	# -----------------------------------------------------------------------------------
-	# Função que imprime todas as transações de crédito de um cliente através do seu CPF
+	# Funcao que imprime todas as transacoes de credito de um cliente atraves do seu CPF
 
-	# Variáveis
+	# Variaveis
 		# $a0: guarda o CPF digitado
-		# $t1: tamanho do vetor de transações
-		# $t2: índice de controle do laço
-		# $t3: retorno da função strcmp
+		# $t1: tamanho do vetor de transacoes
+		# $t2: Indice de controle do laco
+		# $t3: retorno da funcao strcmp
 	# -----------------------------------------------------------------------------------
 	
-	# Solicitar o CPF do usuário
+	# Solicitar o CPF do usuario
 	li $v0, 4
 	la $a0, msg_Pedir_CPF
 	syscall
@@ -263,36 +335,102 @@ imprimir_trasacoes_credito:
    	la $a1, 40
    	syscall
    	
-	lw $t1, num_de_transacoes_credito # carregando o numero de transações de débito feitas
+	lw $t1, num_de_transacoes_credito # carregando o numero de transacoess de debito feitas
 	li $t2, 0 # inicializando indice do loop
 	inicio_loop_trasacoes_credito:
-		bge $t2, $t1, fim_loop_trasacoes_credito # verificando a condição do loop
-		j strcmp # comparando o CPF digitado com os CPF's de cada transação
-		beq $t3, $zero, imprimir_trasacao_credito # Comparando o retorno da strcmp e imprimindo cada transação caso os CPF's deem match
-		addi $t2, $t2, 1 # incrementando a variável de controle
-		j inicio_loop_trasacoes_credito # volta para o início do loop para verificar condição de parada
+		bge $t2, $t1, fim_loop_trasacoes_credito # verificando a condicao do loop
+		j strcmp # comparando o CPF digitado com os CPF's de cada transacao
+		beq $t3, $zero, imprimir_trasacao_credito # Comparando o retorno da strcmp e imprimindo cada transacao caso os CPF's deem match
+		continua_loop_trasacoes_credito:
+		addi $t2, $t2, 1 # incrementando a variavel de controle
+		j inicio_loop_trasacoes_credito # volta para o inicio do loop para verificar condicao de parada
 	fim_loop_trasacoes_credito:
 		j menu # volta para o menu
 
 imprimir_trasacao_credito:
 	# -----------------------------------------------------------------------------------
-	# Função que imprime uma transação de crédito
+	# Funcao que imprime uma transacao de credito
 	# -----------------------------------------------------------------------------------
 	
+	# Carregando os vetores de interesse
+	la $s1, vetor_conta_origem_credito
+	la $s2, vetor_conta_destino_credito
+	la $s3, vetor_valor_trasacao_credito
+	la $s4, vetor_data_transacao_credito
+	
+	move $t4, $t2 # guardando em $t4 o indice dos dados que queremos imprimir
+	sll $t4, $t4, 2 # $t4 = $t4 * 4(calculando o deslocamento)
+	
+	addu $s1, $s1, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s1)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	addu $s2, $s2, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s2)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	addu $s3, $s3, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s3)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	addu $s4, $s4, $t4 # somando o deslocamento com a base do vetor
+	lw $s5, 0($s4)
+	li $v0, 1
+    	move $a0, $s5      
+    	syscall
+    	
+    	j continua_loop_trasacoes_credito
+
+# --------------------------------------------------------------------------------
+# Op��o sair/op��o inv�lida do menu
+# --------------------------------------------------------------------------------
+sair:
+    # Logica para encerrar o programa
+    # (substitua por sua implementacao)
+    li $v0, 10
+    syscall
+
+opcao_invalida:
+    # Mensagem para opsao invalida
+    li $v0, 4
+    la $a0, INVALID_MSG
+    syscall
+
+    j menu
+    
+    cpf_ja_existente:
+    # Mensagem para opcao invalida
+    li $v0, 4
+    la $a0,msg_cpf_ja_existente
+    syscall
+
+    jal continua
+
+# --------------------------------------------------------------------------------
+# Fun��es de manipula��o de string "String.h"
+# --------------------------------------------------------------------------------
 strcmp:
 	# -----------------------------------------------------------------------------------
-	# Função que compara duas strings
+	# Funcao que compara duas strings
 		
 	#Parametros:
 		# Str1 -> $a0(CPF que foi digitado)
-		# Str2 -> vetor_conta_origem_debito[$t2](CPF de origem da transação atual do loop)
-	#Retorno da função no deve ser colocado no $t3
+		# Str2 -> vetor_conta_origem_debito[$t2](CPF de origem da transacao atual do loop)
+	#Retorno da funcao no deve ser colocado no $t3
 		# 0 caso as strings sejam iguais
 		# negativo se a primeira for menor que a segunda
 		# positivo se a primeira for maior que a segunda
 	# -----------------------------------------------------------------------------------
 
-
+# --------------------------------------------------------------------------------
+# Fun��es auxiliares
+# --------------------------------------------------------------------------------
 pula_linha:
 	li $v0,4
 	la $a0,QUEBRA_LINHA
@@ -318,44 +456,3 @@ verifica_cpf:
 	beq $t0,$a0,cpf_ja_existente
 	addi $t1,$t1,1
 	j loop_verifica
-	
-	
-consultar_saldo:
-    # Lógica para consultar o saldo
-    # (substitua por sua implementação)
-    j menu
-
-realizar_deposito:
-    # Lógica para realizar um depósito
-    # (substitua por sua implementação)
-    j menu
-
-realizar_saque:
-    # Lógica para realizar um saque
-    # (substitua por sua implementação)
-    j menu
-
-sair:
-    # Lógica para encerrar o programa
-    # (substitua por sua implementação)
-    li $v0, 10
-    syscall
-
-opcao_invalida:
-    # Mensagem para opção inválida
-    li $v0, 4
-    la $a0, INVALID_MSG
-    syscall
-
-    j menu
-    
-    cpf_ja_existente:
-    # Mensagem para opção inválida
-    li $v0, 4
-    la $a0,msg_cpf_ja_existente
-    syscall
-
-    jal continua
-
-finalizar_programa:
-    j menu
