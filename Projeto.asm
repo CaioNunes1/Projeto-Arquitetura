@@ -603,7 +603,7 @@ setar_valores_vetor_data_da_transação_debito:
 	j begin_loop_vetor_data_transação_debito
 
 # --------------------------------------------------------------------------------
-# Funções de setar o as posições não ocupadas do vetor de conta de origem das trasnsações de débito
+# Funções de setar o as posições não ocupadas do vetor de conta de origem das trasnsações de crédito
 # --------------------------------------------------------------------------------
 setar_valores_vetor_conta_de_origem_credito:
 	li $s0,0#ser o iterador do loop
@@ -627,7 +627,7 @@ setar_valores_vetor_conta_de_origem_credito:
 	j begin_loop_vetor_conta_de_origem_credito
 	
 # --------------------------------------------------------------------------------
-# Funções de setar o as posições não ocupadas do vetor de conta de destino das trasnsações de débito
+# Funções de setar o as posições não ocupadas do vetor de conta de destino das trasnsações de crédito
 # --------------------------------------------------------------------------------
 setar_valores_vetor_conta_de_destino_credito:
 	li $s0,0#ser o iterador do loop
@@ -651,7 +651,7 @@ setar_valores_vetor_conta_de_destino_credito:
 	j begin_loop_vetor_conta_de_destino_credito
 	
 # --------------------------------------------------------------------------------
-# Funções de setar o as posições não ocupadas do vetor de valor da transação das trasnsações de débito
+# Funções de setar o as posições não ocupadas do vetor de valor da transação das trasnsações de crédito
 # --------------------------------------------------------------------------------
 setar_valores_vetor_valor_da_transação_de_credito:
 	li $s0,0#ser o iterador do loop
@@ -675,7 +675,7 @@ setar_valores_vetor_valor_da_transação_de_credito:
 	j begin_loop_vetor_valor_transação_credito
 	
 # --------------------------------------------------------------------------------
-# Funções de setar o as posições não ocupadas do vetor de data da transação das trasnsações de débito
+# Funções de setar o as posições não ocupadas do vetor de data da transação das trasnsações de crédito
 # --------------------------------------------------------------------------------
 setar_valores_vetor_data_da_transação_credito:
 	li $s0,0#ser o iterador do loop
