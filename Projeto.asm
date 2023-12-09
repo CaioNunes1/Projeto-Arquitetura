@@ -505,6 +505,199 @@ setar_valores_vetor_de_numero_da_conta_dos_clientes:
 	sw $a0,0($t0)
 	
 	j begin_loop_vetor_num_do_cliente
+
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de conta de origem das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_conta_de_origem_debito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_conta_origem_debito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_conta_de_origem_debito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_conta_de_origem_debito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_conta_de_origem_debito
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de conta de destino das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_conta_de_destino_debito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_conta_destino_debito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_conta_de_destino_debito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_conta_de_destino_debito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_conta_de_destino_debito
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de valor da transação das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_valor_da_transação_de_debito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_valor_trasacao_debito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_valor_transação_debito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_valor_transação_debito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_valor_transação_debito
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de data da transação das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_data_da_transação_debito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_data_transacao_debito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_data_transação_debito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_data_transação_debito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_data_transação_debito
+
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de conta de origem das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_conta_de_origem_credito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_conta_origem_credito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_conta_de_origem_credito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_conta_de_origem_credito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_conta_de_origem_credito
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de conta de destino das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_conta_de_destino_credito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_conta_destino_credito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_conta_de_destino_credito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_conta_de_destino_credito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_conta_de_destino_credito
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de valor da transação das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_valor_da_transação_de_credito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_valor_trasacao_credito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_valor_transação_credito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_valor_transação_credito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_valor_transação_credito
+	
+# --------------------------------------------------------------------------------
+# Funções de setar o as posições não ocupadas do vetor de data da transação das trasnsações de débito
+# --------------------------------------------------------------------------------
+setar_valores_vetor_data_da_transação_credito:
+	li $s0,0#ser o iterador do loop
+	la $t0,vetor_data_transacao_credito #reg para guardar o vetor de saldo dos clientes
+	
+	begin_loop_vetor_data_transação_credito:
+	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
+	sll $s2,$s0,2 # $s2 = 4i
+	
+	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+
+	#se o valor da posição 4i for maior que zero, pula a posição
+	addi $s0,$s0,1#somando o valor do iterador
+	bgtz $a0,begin_loop_vetor_data_transação_credito
+	
+	#se o valor da posição não for maior que zero
+	li $a0,0 #seta aquela posição com valor igual a 1500
+	sw $a0,0($t0)
+	
+	j begin_loop_vetor_data_transação_credito
+
 # --------------------------------------------------------------------------------
 # Opção sair/opção inválida do menu
 # --------------------------------------------------------------------------------
