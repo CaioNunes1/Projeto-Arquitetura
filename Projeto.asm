@@ -1,15 +1,15 @@
 .data
-MENU_PROMPT:   .asciiz "Escolha uma opÃ§Ã£o:\n1. Criar conta\n2. Saldo\n3. DepÃ³sito\n4. Saque\n5. Imprimir vetor\n6. Sair\nOpÃ§Ã£o: "
-SALDO_MSG:     .asciiz "Seu saldo Ã©: $"
-DEPOSITO_MSG:  .asciiz "Digite o valor do depÃ³sito: $"
+MENU_PROMPT:   .asciiz "Escolha uma opcao:\n1. Criar conta\n2. Saldo\n3. Deposito\n4. Saque\n5. Imprimir vetor\n6. Sair\nOpcao: "
+SALDO_MSG:     .asciiz "Seu saldo: $"
+DEPOSITO_MSG:  .asciiz "Digite o valor do deposito: $"
 SAQUE_MSG:     .asciiz "Digite o valor do saque: $"
-INVALID_MSG:   .asciiz "OpÃ§Ã£o invÃ¡lida. Tente novamente.\n"
+INVALID_MSG:   .asciiz "Opcao invalida. Tente novamente.\n"
 QUEBRA_LINHA:  .asciiz "\n"
 
 msg_Pedir_Nome: .asciiz "Digite seu nome:\n"
 nome: .space 40
 cpf: .space 40
-msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente nÃºmeros):\n"
+msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente numeros):\n"
 
 # Adicione a variÃ¡vel para armazenar o nÃºmero da conta atual
 conta_atual: .word 10000
@@ -17,7 +17,7 @@ vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada
 vetor_numero_cliente: .space 200
 vetor_cpf_cliente: .space 200
 vetor_saldo_cliente: .space 200
-vetor_credito_cliente: .space 200
+vetor_credito_cliente: .space 200	
 num_de_clientes: .word 0
 
 # Vetores para guardar dados de transaÃ§Ãµes de debito
@@ -34,7 +34,9 @@ vetor_valor_trasacao_credito: .space 1000
 vetor_data_transacao_credito: .space 1000
 num_de_transacoes_credito: .word 0
 
-msg_cpf_ja_existente:.asciiz "ImpossÃ­vel criar conta, esse cpf jÃ¡ foi cadastrado!"
+msg_cpf_ja_existente:.asciiz "Impossivel criar conta, esse cpf ja foi cadastrado!"
+msg_account_not_exists:   .asciiz "Conta n�o existe.\n"
+msg_pedir_numero_conta: .asciiz "Digite o numero da conta:"
 
 
 iterator:.word 0
@@ -62,7 +64,7 @@ menu:
     beq $t0, 4, realizar_saque
     beq $t0, 5, imprimir_vetor # apenas de teste
     beq $t0, 6, imprimir_trasacoes_debito
-    beq $t0, 7, imprimir_transacoes_credito
+    beq $t0, 7, imprimir_trasacoes_credito
     beq $t0, 8, sair
     j opcao_invalida
 
@@ -70,14 +72,14 @@ menu:
 # Opção 1 do menu
 # --------------------------------------------------------------------------------
 criar_conta:
-	lw $t3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
-	li $t7,4 #guardando para poder servir de iterador quando for ir criando usuÃ¡rios
-	mul $t7,$t7,$t3 #fazendo $t7= 4*i para guardar corretamente os valores na posiÃ§Ã£o do vetor
+	lw $t3,num_de_clientes #carregando o numero de clientes disponiveis
+	li $t7,4 #guardando para poder servir de iterador quando for ir criando usuarios
+	mul $t7,$t7,$t3 #fazendo $t7= 4*i para guardar corretamente os valores na posicao do vetor
 	addi $t3,$t3,1
 	sw $t3,num_de_clientes
 	beq $t3,50,menu #se o numero de clientes for igual a zero termina o programa
 	
-	# Incrementar o nÃºmero da conta atual
+	# Incrementar o numero da conta atual
     	lw $t1, conta_atual
     	addi $t1, $t1, 1
    	sw $t1, conta_atual
@@ -155,6 +157,53 @@ consultar_saldo:
 realizar_deposito:
     # LÃ³gica para realizar um depÃ³sito
     # (substitua por sua implementaÃ§Ã£o)
+	# Solicitar o valor do depÃ³sito
+	li $v0, 4
+	la $a0, DEPOSITO_MSG
+	syscall
+
+	# Ler o valor do depÃ³sito
+	li $v0, 7
+	syscall
+	move $t0, $v0
+
+	 # Solicitar o n�mero da conta
+  li $v0, 4
+  la $a0, msg_pedir_numero_conta
+  syscall
+
+  # Ler o n�mero da conta
+  li $v0, 5
+  syscall
+  move $t1, $v0
+
+  # Verificar se a conta existe
+  lw $t2, num_de_clientes
+  blt $t1, $zero, conta_nao_existe
+  slt $t3, $t1, $t2
+  beq $t3, $zero, conta_nao_existe
+
+  # Incrementar o saldo da conta
+  lw $t4, vetor_saldo_cliente($t1) # Load saldo of chosen account
+  add $t4, $t4, $t0
+  sw $t4, vetor_saldo_cliente($t1) # Store updated saldo
+
+  # Exibir uma mensagem de confirma��o
+  li $v0, 4
+  la $a0, SALDO_MSG
+  syscall
+  move $a0, $t4
+  li $v0, 1
+  syscall
+
+  j menu
+
+conta_nao_existe:
+  # Exibir uma mensagem de erro
+  li $v0, 4
+  la $a0, msg_account_not_exists
+  syscall
+
     j menu
 
 # --------------------------------------------------------------------------------
@@ -465,7 +514,7 @@ setar_valores_vetor_de_cpf_dos_clientes:
 	li $s0,0#ser o iterador do loop
 	la $t0,vetor_cpf_cliente #reg para guardar o vetor de saldo dos clientes
 	
-	begin_loop_vetor_cpf:
+	begin_loop_vetor_cpf_1:
 	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
 	sll $s2,$s0,2 # $s2 = 4i
 	
@@ -557,11 +606,11 @@ setar_valores_vetor_conta_de_destino_debito:
 # --------------------------------------------------------------------------------
 # Funções de setar o as posições não ocupadas do vetor de valor da transação das trasnsações de débito
 # --------------------------------------------------------------------------------
-setar_valores_vetor_valor_da_transação_de_debito:
+setar_valores_vetor_valor_da_transacao_de_debito:
 	li $s0,0#ser o iterador do loop
 	la $t0,vetor_valor_trasacao_debito #reg para guardar o vetor de saldo dos clientes
 	
-	begin_loop_vetor_valor_transação_debito:
+	begin_loop_vetor_valor_transacao_debito:
 	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
 	sll $s2,$s0,2 # $s2 = 4i
 	
@@ -570,22 +619,22 @@ setar_valores_vetor_valor_da_transação_de_debito:
 
 	#se o valor da posição 4i for maior que zero, pula a posição
 	addi $s0,$s0,1#somando o valor do iterador
-	bgtz $a0,begin_loop_vetor_valor_transação_debito
+	bgtz $a0,begin_loop_vetor_valor_transacao_debito
 	
 	#se o valor da posição não for maior que zero
 	li $a0,0 #seta aquela posição com valor igual a 1500
 	sw $a0,0($t0)
 	
-	j begin_loop_vetor_valor_transação_debito
+	j begin_loop_vetor_valor_transacao_debito
 	
 # --------------------------------------------------------------------------------
 # Funções de setar o as posições não ocupadas do vetor de data da transação das trasnsações de débito
 # --------------------------------------------------------------------------------
-setar_valores_vetor_data_da_transação_debito:
+setar_valores_vetor_data_da_transacao_debito:
 	li $s0,0#ser o iterador do loop
 	la $t0,vetor_data_transacao_debito #reg para guardar o vetor de saldo dos clientes
 	
-	begin_loop_vetor_data_transação_debito:
+	begin_loop_vetor_data_transacao_debito:
 	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
 	sll $s2,$s0,2 # $s2 = 4i
 	
@@ -594,13 +643,13 @@ setar_valores_vetor_data_da_transação_debito:
 
 	#se o valor da posição 4i for maior que zero, pula a posição
 	addi $s0,$s0,1#somando o valor do iterador
-	bgtz $a0,begin_loop_vetor_data_transação_debito
+	bgtz $a0,begin_loop_vetor_data_transacao_debito
 	
 	#se o valor da posição não for maior que zero
 	li $a0,0 #seta aquela posição com valor igual a 1500
 	sw $a0,0($t0)
 	
-	j begin_loop_vetor_data_transação_debito
+	j begin_loop_vetor_data_transacao_debito
 
 # --------------------------------------------------------------------------------
 # Funções de setar o as posições não ocupadas do vetor de conta de origem das trasnsações de crédito
@@ -653,11 +702,11 @@ setar_valores_vetor_conta_de_destino_credito:
 # --------------------------------------------------------------------------------
 # Funções de setar o as posições não ocupadas do vetor de valor da transação das trasnsações de crédito
 # --------------------------------------------------------------------------------
-setar_valores_vetor_valor_da_transação_de_credito:
+setar_valores_vetor_valor_da_transacao_de_credito:
 	li $s0,0#ser o iterador do loop
 	la $t0,vetor_valor_trasacao_credito #reg para guardar o vetor de saldo dos clientes
 	
-	begin_loop_vetor_valor_transação_credito:
+	begin_loop_vetor_valor_transacao_credito:
 	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
 	sll $s2,$s0,2 # $s2 = 4i
 	
@@ -666,22 +715,22 @@ setar_valores_vetor_valor_da_transação_de_credito:
 
 	#se o valor da posição 4i for maior que zero, pula a posição
 	addi $s0,$s0,1#somando o valor do iterador
-	bgtz $a0,begin_loop_vetor_valor_transação_credito
+	bgtz $a0,begin_loop_vetor_valor_transacao_credito
 	
 	#se o valor da posição não for maior que zero
 	li $a0,0 #seta aquela posição com valor igual a 1500
 	sw $a0,0($t0)
 	
-	j begin_loop_vetor_valor_transação_credito
+	j begin_loop_vetor_valor_transacao_credito
 	
 # --------------------------------------------------------------------------------
 # Funções de setar o as posições não ocupadas do vetor de data da transação das trasnsações de crédito
 # --------------------------------------------------------------------------------
-setar_valores_vetor_data_da_transação_credito:
+setar_valores_vetor_data_da_transacao_credito:
 	li $s0,0#ser o iterador do loop
 	la $t0,vetor_data_transacao_credito #reg para guardar o vetor de saldo dos clientes
 	
-	begin_loop_vetor_data_transação_credito:
+	begin_loop_vetor_data_transacao_credito:
 	bgt $s0,50,finalizar_programa#se $s0 for maior que 50
 	sll $s2,$s0,2 # $s2 = 4i
 	
@@ -690,13 +739,13 @@ setar_valores_vetor_data_da_transação_credito:
 
 	#se o valor da posição 4i for maior que zero, pula a posição
 	addi $s0,$s0,1#somando o valor do iterador
-	bgtz $a0,begin_loop_vetor_data_transação_credito
+	bgtz $a0,begin_loop_vetor_data_transacao_credito
 	
 	#se o valor da posição não for maior que zero
 	li $a0,0 #seta aquela posição com valor igual a 1500
 	sw $a0,0($t0)
 	
-	j begin_loop_vetor_data_transação_credito
+	j begin_loop_vetor_data_transacao_credito
 
 # --------------------------------------------------------------------------------
 # Opção sair/opção inválida do menu
@@ -767,3 +816,6 @@ verifica_cpf:
 	beq $t0,$a0,cpf_ja_existente
 	addi $t1,$t1,1
 	j loop_verifica
+finalizar_programa:
+    li      $v0,10
+    syscall
