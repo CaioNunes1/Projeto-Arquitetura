@@ -11,7 +11,7 @@ nome: .space 40
 cpf: .space 40
 msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente numeros):\n"
 
-# Adicione a variÃ¡vel para armazenar o nÃºmero da conta atual
+# Adicione a variavel para armazenar o numero da conta atual
 conta_atual: .word 10000
 vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada cliente ocupa 4 posiÃ§Ãµes)
 vetor_numero_cliente: .space 200
@@ -20,14 +20,14 @@ vetor_saldo_cliente: .space 200
 vetor_credito_cliente: .space 200	
 num_de_clientes: .word 0
 
-# Vetores para guardar dados de transaÃ§Ãµes de debito
+# Vetores para guardar dados de transacoes de debito
 vetor_conta_origem_debito: .space 1000
 vetor_conta_destino_debito: .space 1000
 vetor_valor_trasacao_debito: .space 1000
 vetor_data_transacao_debito: .space 1000
 num_de_transacoes_debito: .word 0
 
-# Vetores para guardar dados de transaÃ§Ãµes de credito
+# Vetores para guardar dados de transacoes de credito
 vetor_conta_origem_credito: .space 1000
 vetor_conta_destino_credito: .space 1000
 vetor_valor_trasacao_credito: .space 1000
@@ -35,7 +35,7 @@ vetor_data_transacao_credito: .space 1000
 num_de_transacoes_credito: .word 0
 
 msg_cpf_ja_existente:.asciiz "Impossivel criar conta, esse cpf ja foi cadastrado!"
-msg_account_not_exists:   .asciiz "Conta n�o existe.\n"
+msg_account_not_exists:   .asciiz "Conta nao existe.\n"
 msg_pedir_numero_conta: .asciiz "Digite o numero da conta:"
 
 
@@ -57,7 +57,7 @@ menu:
     syscall
     move $t0, $v0
 
-    # Executar a opÃ§Ã£o escolhida
+    # Executar a opcao escolhida
     beq $t0, 1, criar_conta
     beq $t0, 2, consultar_saldo
     beq $t0, 3, realizar_deposito
@@ -147,8 +147,37 @@ criar_conta:
 # Opção 2 do menu
 # --------------------------------------------------------------------------------
 consultar_saldo:
-    # LÃ³gica para consultar o saldo
-    # (substitua por sua implementaÃ§Ã£o)
+    # Logica para consultar o saldo
+li $v0, 4
+la $a0, msg_Pedir_CPF
+syscall
+
+# Ler o número do CPF do usuario
+li $v0, 5
+syscall
+move $t1, $v0  # $t1 contem o número do CPF fornecido pelo usuario
+
+li $t9, 0  # $t9 sera o contador para controlar o loop
+la $t8, vetor_cpf_cliente  # Endereço base do vetor de CPFs
+lw $s6, num_de_clientes  # Quantidade total de clientes em $s6
+
+verifica_se_conta_existe:
+    beq $t9, $s6, imprime_mensagem_conta_nao_existe  # Se $t9 for igual a $s6, a conta não existe
+    lw $t2, 0($t8)  # Carrega o valor do CPF na posição atual do vetor
+    beq $t1, $t2, imprime_saldo  # Verifica se o CPF fornecido é igual ao CPF atual do vetor
+    addi $t9, $t9, 1  # Incrementa o contador
+    addi $t8, $t8, 4  # Avança para o próximo CPF no vetor
+    j verifica_se_conta_existe
+
+imprime_saldo:
+    la $t3, vetor_saldo_cliente
+    mul $t7, $t9, 4  # Calcula o deslocamento para o saldo correspondente
+    add $t4, $t3, $t7  # $t4 contém o endereço do saldo na posição correspondente
+
+    li $v0, 1
+    lw $a0, 0($t4)  # Carrega o saldo na posição correspondente
+    syscall
+
     j menu
 
 # --------------------------------------------------------------------------------
@@ -167,19 +196,19 @@ realizar_deposito:
 	syscall
 	move $t0, $v0
 
-	 # Solicitar o n�mero da conta
+	 # Solicitar o n�mero da conta
   li $v0, 4
   la $a0, msg_pedir_numero_conta
   syscall
 
-  # Ler o n�mero da conta
+  # Ler o n�mero da conta
   li $v0, 5
   syscall
   move $t1, $v0
 
   # Verificar se a conta existe
   lw $t2, num_de_clientes
-  blt $t1, $zero, conta_nao_existe
+  blt $t1, $zero, imprime_mensagem_conta_nao_existe
   slt $t3, $t1, $t2
   beq $t3, $zero, conta_nao_existe
 
@@ -188,7 +217,7 @@ realizar_deposito:
   add $t4, $t4, $t0
   sw $t4, vetor_saldo_cliente($t1) # Store updated saldo
 
-  # Exibir uma mensagem de confirma��o
+  # Exibir uma mensagem de confirma��o
   li $v0, 4
   la $a0, SALDO_MSG
   syscall
@@ -198,13 +227,8 @@ realizar_deposito:
 
   j menu
 
-conta_nao_existe:
-  # Exibir uma mensagem de erro
-  li $v0, 4
-  la $a0, msg_account_not_exists
-  syscall
 
-    j menu
+
 
 # --------------------------------------------------------------------------------
 # Opção 4 do menu
@@ -247,7 +271,7 @@ imprimir_vetor:
 	# imprimindo vetor do nÃºmero do cliente
 	begin_loop_num_clintes:
  	# Usando $s6 para controlar o loop de impressÃ£o do nÃºmero do cliente
-    	bge $s6, $s2, begin_loop_vetor_cpf
+    	 bge$s6, $s2, begin_loop_vetor_cpf
     
     	sll $s7, $s6, 2  # t7 = 4 * i
     	addu $s7, $s7, $s4  # 4i = 4i + local de memoria do array clientes
@@ -819,3 +843,9 @@ verifica_cpf:
 finalizar_programa:
     li      $v0,10
     syscall
+
+imprime_mensagem_conta_nao_existe:
+  # Exibir uma mensagem de erro
+  li $v0, 4
+  la $a0, msg_account_not_exists
+  syscall
