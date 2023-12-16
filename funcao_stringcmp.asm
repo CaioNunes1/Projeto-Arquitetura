@@ -1,83 +1,111 @@
 .data
-prompt:     .asciiz     "Digite uma string ('.' ao final) > "
+prompt:     .asciiz     "Digite uma string:"
 dot:        .asciiz     "."
 eqmsg:      .asciiz     "strings sao iguais\n"
 nemsg:      .asciiz     "strings nao sao iguais\n"
-
-	Joao:.asciiz "Jo„o.\n"
+msg_fora_range:.asciiz "fora de range\n"
+msg_pula_string:.asciiz "pulou de string\n"
+msg_pulou_carac:.asciiz "pulou o caracter\n"
+	Joao:.asciiz "Jo√£o.\n"
 	Luiz:.asciiz "Luiz\n"
 	Gabriel:.asciiz "Gabriel\n"
 	Carlos:.asciiz"Carlos\n"
 
 	names:.word Joao,Luiz,Gabriel,Carlos#como se fosse um vetor
-	iterator:.word 0
+	iterator2:.word 0
 
 str1:       .space      80
 str2:       .space      80
 
     .text
 
-    .globl  main
-main:
+    .globl  main_funcao
+main_funcao:
  # ler a primeira string
     la      $s2,str1
     move    $t2,$s2
     jal     getstr
-    #quando ele sai de getstr o nome est· guardado em $t2
+    #quando ele sai de getstr o nome est√° guardado em $t2
 
 
-
-
-# loop de comparaÁ„o de strings (como strcmp)
+# loop de compara√ß√£o de strings (como strcmp)
 cmploop:
     la $s3,names
     li $t4,3
-    lw $t5,iterator
-    bgt $t5,$t4,cmpne
+    lw $t5,iterator2
+    bgt $t5,3,reseta_vetor
+    
+    
     
     sll $t6,$t5,2#$t6=4i
     addu $t6,$t6,$s3
 
     
     lw $s0,0($t6)
+    continua_funcao:
     
-    lb      $t2,($s2)                   # obtenha o prÛximo caractere de str1
-    lb      $t3,($s0)                   # obtenha o prÛximo caractere dos nomes do vetor
-    bne     $t2,$t3,pula_string               # eles s„o diferentes? se sim, voe
+    
+    lb      $t2,($s2)                   # obtenha o pr√≥ximo caractere de str1
+    lb      $t3,($s0)                   # obtenha o pr√≥ximo caractere dos nomes do vetor
+    
+    bne $t2, $t3, pula_string           # se s√£o diferentes, pula para pula_string
+    beq $t3, $zero, cmpeq               # quando chegar no caractere nulo, pula para cmpeq
+    beq $t3,$t2,pula_caracter
 
-    beq     $t2,$t3,cmpeq             # no EOS? sim, voe (strings iguais)
+    
 
-    addi    $s2,$s2,1                   # aponte para o prÛximo caractere
-    addi    $s0,$s0,1                	# aponte para o prÛximo caractere
-    j       cmploop
+    j continua_funcao                          # se os caracteres s√£o iguais, continue para o pr√≥ximo    
+    
+    j cmploop
     
     pula_string:
     addi $t5,$t5,1
-    sw $t5,iterator
-    lw $t5,iterator
+    sw $t5,iterator2
+
+    li $v0,4
+    la $a0,msg_pula_string
+    syscall
     
     j cmploop
-
-# as strings _n„o_ s„o iguais -- envie mensagem
+    
+    reseta_vetor:
+    li $t5,0
+    sw $t5,iterator2
+    j main_funcao
+    
+    pula_caracter:
+    addi    $s2,$s2,1                   # aponte para o pr√≥ximo caractere
+    addi    $s0,$s0,1                	# aponte para o pr√≥ximo caractere
+    
+    li $v0,4
+    la $a0,msg_pulou_carac
+    syscall
+    jal continua_funcao
+    
+# as strings _n√£o_ s√£o iguais -- envie mensagem
 cmpne:
     la      $a0,nemsg
     li      $v0,4
     syscall
-    j       main
+    j       exit
 
-# as strings _s„o_ iguais -- envie mensagem
+# as strings _s√£o_ iguais -- envie mensagem
 cmpeq:
     la      $a0,eqmsg
     li      $v0,4
     syscall
-    j       main
+    j       main_funcao
 
-# getstr -- solicite e leia a string do usu·rio
+fora_de_range:
+	li $v0,4
+	la $a0,msg_fora_range
+	syscall
+# getstr -- solicite e leia a string do usu√°rio
 #
 # argumentos:
-#   t2 -- endereÁo do buffer de string
+#   t2 -- endere√ßo do buffer de string
 getstr:
-    # solicite ao usu·rio
+    # solicite ao usu√°rio
     la      $a0,prompt
     li      $v0,4
     syscall
