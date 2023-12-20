@@ -213,12 +213,14 @@ lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
    	
    	# a funÃ§Ã£o verifica_cpf
    	#move $s3,$zero
-   	lw $a3,num_de_clientes
+   	
+   	#lw $a3,num_de_clientes
+   	
    	la $a0,cpf
 #   	subi $t3,$t3,1
-   	sll $t7,$a3,2#$t7=4*indice
+   	#sll $t7,$a3,2#$t7=4*indice
    	
-   	lw $t0,indice_nomes
+   	#lw $t0,indice_nomes
    	#colocando denovo o valor de $t7 para ser um multiplo de 4=4i, pois ele mudou de valor quando ele foi para
    	sll $t9,$t0,2 #$t9 = 4*indice
    	addu $a0,$a0,$t9
@@ -229,7 +231,7 @@ lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
    	
    	#registrador para vetor_cpf_cliente
    	la $t6,vetor_cpf_cliente
-   	add $t6,$t6,$t7#ajeitando e a cada iteraÃ§Ã£o colocando na posiÃ§Ã£o 4i
+   	addu $t6,$t6,$t7#ajeitando e a cada iteraÃ§Ã£o colocando na posiÃ§Ã£o 4i
    	sw $a0,0($t6)
    	
    	addi $a3,$a3,1
@@ -400,8 +402,74 @@ realizar_deposito:
 # Opção 4 do menu
 # --------------------------------------------------------------------------------
 realizar_saque:
-    # LÃ³gica para realizar um saque
-    # (substitua por sua implementaÃ§Ã£o)
+    li $v0,4
+    la $a0,msg_num_conta
+    syscall
+    
+    li $t1,0
+    
+    li $v0,5#recebendo o número da conta
+    syscall
+    
+    move $a1,$v0
+    
+    #parte para verificar se a conta existe ou não
+    continua_verifica_num_saque:
+    li $s0,0
+    la $s1,num_de_clientes
+    sll $s4,$s0,2 #$s4=4*i
+    
+    beq $s4,$s1,continua_menu
+    
+    la $s5,vetor_numero_cliente
+    
+    
+    addu $s4,$s4,$s5#acessando o valor na posição de memória
+    lw $a0,0($s4)
+    
+    beq $a1,$a0,continua_verifica_conta_saque
+    bne $a1,$a0,conta_nao_existe
+    addi $s0,$s0,1
+    sw $s0,iterator
+    j continua_verifica_num_saque
+    #j menu
+    
+
+    
+    jal continua_verifica_num_saque
+    
+    continua_verifica_conta_saque:
+    li $v0,4
+    la $a0, msg_digite_valor
+    syscall
+    
+    li $v0, 5
+    syscall
+
+    move $t1, $v0  # Agora $t1 contém o valor digitado
+    la $t2,vetor_saldo_cliente
+    #$s4=4*i = indice que foi achado o num da conta
+    sll $t3,$s0,2 #$t3= o indice em que o numero da conta está *4
+    addu $t4,$t3,$t2 #$t4 recebe a posição de memoria dos saldos + 4*i
+    lw $t5,0($t4)
+    
+    sub   $t5,$t5,$t1 #pegando o valor que já tem armazenado e somando com o lido
+    
+    move $a0,$t1
+    li $v0,1
+    syscall 
+    
+    sw $t1,0($t4)
+    
+    jal pula_linha
+    li $v0,4
+    la $a0,deposito_com_sucesso
+    syscall
+    jal pula_linha
+    
+    jal continua_menu
+
+    
     j menu
 
 # --------------------------------------------------------------------------------
