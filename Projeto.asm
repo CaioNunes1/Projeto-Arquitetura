@@ -1,5 +1,5 @@
 .data
-MENU_PROMPT:   .asciiz "Escolha uma opÃ§Ã£o:\n1. Criar conta\n2. Saldo\n3. Depósito\n4. Saque\n5. Imprimir vetor\n6. Efetuar trânsação \n8. Sair\nOpÃ§Ã£o: "
+MENU_PROMPT:   .asciiz "Escolha uma opÃ§Ã£o:\n1. Criar conta\n2. Saldo\n3. Depósito\n4. Saque\n5. Imprimir vetor\n6. Efetuar trânsação\n9. Pagar Conta\n10. Sair\nOpÃ§Ã£o: "
 SALDO_MSG:     .asciiz "Seu saldo Ã©: $"
 DEPOSITO_MSG:  .asciiz "Digite o valor do depÃ³sito: $"
 SAQUE_MSG:     .asciiz "Digite o valor do saque: $"
@@ -23,6 +23,15 @@ msg_digite_valor:.asciiz "Digite o valor para depositar na sua conta:"
 deposito_com_sucesso:.asciiz "Depósito feito com sucesso."
 tamanho_40_bytes:.word 0
 
+pgt_pagar_deb_ou_cred:.asciiz "Olá você escolheu a opção de pagar conta, escolha uma opção para pagar abaixo\n1-Crédito\n2-Débito\n "
+msg_pagar_conta:.asciiz "Digite o valor da conta que irá pagar:\n"
+conta_paga:.asciiz"Conta paga com sucesso."
+msg_impossivel_pagar_conta_deb:.asciiz "Impossível pagar conta com saldo 0."
+msg_impossivel_pagar_conta_cred:.asciiz "Impossível pagar conta, todo o seu limite já foi usado 0."
+credito:.asciiz " Crédito"
+debito:.asciiz " Débito"
+
+msg_avisando_sobre_funcao_de_imprimir_saldo_e_cred:.asciiz"Você na parte de imprimir seu saldo e crédito disponível\n"
 # Adicione a variÃ¡vel para armazenar o nÃºmero da conta atual
 conta_atual: .word 10000
 vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada cliente ocupa 4 posiÃ§Ãµes)
@@ -75,12 +84,14 @@ main:
 
 menu:
     # Exibir o menu
+    jal setar_valores_vetor_de_saldo_dos_clientes
+    jal setar_valores_vetor_de_credito_dos_clientes
+    
+    continua_menu:
     li $v0, 4
     la $a0, MENU_PROMPT
     syscall
     
-    jal setar_valores_vetor_de_saldo_dos_clientes
-    continua_menu:
 
     # Ler a opÃ§Ã£o do usuÃ¡rio
     li $v0, 5
@@ -96,7 +107,8 @@ menu:
     beq $t0, 6, efetuar_transacao
     beq $t0, 7, imprimir_transacoes_debito
     beq $t0, 8, imprimir_transacoes_credito
-    beq $t0, 9, sair
+    beq $t0, 9, pagar_conta
+    beq $t0, 10, sair
     j opcao_invalida
 
 # --------------------------------------------------------------------------------
@@ -207,15 +219,82 @@ criar_conta:
    	move $a0,$s3
    	syscall
    	
-    j menu
+    j continua_menu
 
 # --------------------------------------------------------------------------------
 # Opção 2 do menu
 # --------------------------------------------------------------------------------
 consultar_saldo:
-    # LÃ³gica para consultar o saldo
-    # (substitua por sua implementaÃ§Ã£o)
-    j menu
+   li $t0,0
+   la $t3,vetor_saldo_cliente
+   la $t2,vetor_credito_cliente
+   
+   li $v0,4
+   la $a0,msg_avisando_sobre_funcao_de_imprimir_saldo_e_cred
+   syscall
+   
+   li $v0,4
+    la $a0,msg_num_conta
+    syscall
+    
+    li $v0,5#recebendo o número da conta
+    syscall
+    
+   move $a1,$v0#conta está em $a1
+   continua_verifica_num_imprim_saldo_e_cred:
+   li $s0,0
+    la $s1,num_de_clientes
+    sll $s4,$s0,2 #$s4=4*i
+    
+    beq $s4,$s1,continua_menu
+    
+    la $s5,vetor_numero_cliente
+    #la $s7,tamanho_40_bytes
+    
+    addu $s4,$s4,$s5#acessando o valor na posição de memória
+    lw $a0,0($s4)
+    
+    beq $a1,$a0,continua_verifica_num_para_imprim
+    bne $a1,$a0,conta_nao_existe
+    addi $s0,$s0,1
+    sw $s0,iterator
+    j continua_verifica_num_imprim_saldo_e_cred
+    #j menu
+    
+    continua_verifica_num_para_imprim:
+    
+    #$s4=4*i = indice que foi achado o num da conta
+    sll $s3,$s0,2 #$t3= o indice em que o numero da conta está *4
+    addu $t4,$s3,$t2 #$t4 recebe a posição de memoria dos saldos + 4*i
+    lw $t5,0($t4)
+    
+    move $a0,$t5
+    li $v0,1#imprimindo o credito do cliente
+    syscall
+    
+    li $v0,4
+    la $a0,credito#imprimindo o nome credito
+    syscall
+    
+    jal pula_linha
+    
+    sll $s6,$s0,2
+    addu $s7,$s6,$t3
+    lw $t6,0($s7) #recebendo o valor do saldo
+    
+    move $a0,$t6 #imprimindo o saldo
+    li $v0,1
+    syscall
+    
+     li $v0,4
+    la $a0,debito#imprimindo o nome debito
+    syscall
+    
+    jal pula_linha
+    
+    j continua_menu
+    
+    
 
 # --------------------------------------------------------------------------------
 # Opção 3 do menu
@@ -225,7 +304,9 @@ realizar_deposito:
     la $a0,msg_num_conta
     syscall
     
-    li $v0,5
+    li $t1,0
+    
+    li $v0,5#recebendo o número da conta
     syscall
     
     move $a1,$v0
@@ -236,10 +317,10 @@ realizar_deposito:
     la $s1,num_de_clientes
     sll $s4,$s0,2 #$s4=4*i
     
-    beq $s4,$s1,menu
+    beq $s4,$s1,continua_menu
     
     la $s5,vetor_numero_cliente
-    la $s7,tamanho_40_bytes
+    
     
     addu $s4,$s4,$s5#acessando o valor na posição de memória
     lw $a0,0($s4)
@@ -249,13 +330,13 @@ realizar_deposito:
     addi $s0,$s0,1
     sw $s0,iterator
     j continua_verifica_num
-    j menu
+    #j menu
     
     conta_nao_existe:
     li $v0,4
     la $a0,nao_existe_num_da_conta
     syscall 
-    jal menu
+    jal continua_menu
     
     conta_existente:
     li $v0,4
@@ -269,25 +350,31 @@ realizar_deposito:
     la $a0, msg_digite_valor
     syscall
     
-    li $v0,6
+    li $v0, 5
     syscall
-    
-    move $t1,$v0#recebe o valor digitado
+
+    move $t1, $v0  # Agora $t1 contém o valor digitado
     la $t2,vetor_saldo_cliente
     #$s4=4*i = indice que foi achado o num da conta
     sll $t3,$s0,2 #$t3= o indice em que o numero da conta está *4
     addu $t4,$t3,$t2 #$t4 recebe a posição de memoria dos saldos + 4*i
     lw $t5,0($t4)
     
-    add $t5,$t5,$t1 #pegando o valor que já tem armazenado e somando com o lido
+    add   $t1,$t1,$t5 #pegando o valor que já tem armazenado e somando com o lido
     
-    sw $t5,0($t4)
+    move $a0,$t1
+    li $v0,1
+    syscall 
     
+    sw $t1,0($t4)
+    
+    jal pula_linha
     li $v0,4
     la $a0,deposito_com_sucesso
     syscall
+    jal pula_linha
     
-    jal menu
+    jal continua_menu
     
 
 # --------------------------------------------------------------------------------
@@ -351,7 +438,7 @@ imprimir_vetor:
 	# imprimindo vetor do cpf
 	begin_loop_vetor_cpf:
     	# Usando $t9 para controlar o loop de impressao do cpf
-    	bge $t9, $s2, menu
+    	bge $t9, $s2, continua_menu
     
     	sll $t8, $t9, 2  # t8 = 4 * i
     	addu $t8, $t8, $s5  # 4i = 4i + local de memoria do array clientes
@@ -361,14 +448,14 @@ imprimir_vetor:
     	
 	li $v0, 4
     	lw $a0, 0($t8)
-    	beqz $a0, menu
+    	beqz $a0, continua_menu
     
     	syscall
     
     	addi $t9, $t9, 1
     	j begin_loop_vetor_cpf
 
-	j menu
+	j continua_menu
 
 # --------------------------------------------------------------------------------
 # Opção 6 do menu EFETUAR TRANSAÇÕES
@@ -384,10 +471,10 @@ efetuar_transacao:
 	
 	move $t0,$v0
 	
-	beq $t0,1,pagar_por_debito
+	beq $t0,1,transferencia_por_debito
 	#beq $t0,2,pagar_por_credito
 	
-	pagar_por_debito:
+	transferencia_por_debito:
 	
 	continua3:#continuação do código pra poder retonar de onde tinha parado, no caso retornando para o começo pq não encontrou o cpf
 	li $v0,4
@@ -639,23 +726,29 @@ setar_valores_vetor_de_saldo_dos_clientes:
 # Funções de setar o as posições não ocupadas do vetor de credito do cliente
 # --------------------------------------------------------------------------------
 setar_valores_vetor_de_credito_dos_clientes:
-	li $s0,0#ser o iterador do loop
+	li $s0,0#4ser o iterador do loop
 	la $t0,vetor_credito_cliente #reg para guardar o vetor de saldo dos clientes
 	
 	begin_loop_vetor_credito:
-	bgt $s0,50,menu#se $s0 for maior que 50
+	bgt $s0,50,continua_menu#se $s0 for maior que 50
 	sll $s2,$s0,2 # $s2 = 4i
 	
-	addu $s2,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
-	lw $a0,0($s2)#recebendo em $a0 o valor da posição do array 0,4,8
+	
+	addu $s3,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
+	lw $a0,0($s3)#recebendo em $a0 o valor da posição do array 0,4,8
 
 	#se o valor da posição 4i for maior que zero, pula a posição
 	addi $s0,$s0,1#somando o valor do iterador
+	
 	bgtz $a0,begin_loop_vetor_credito
 	
 	#se o valor da posição não for maior que zero
 	li $a0,1500 #seta aquela posição com valor igual a 1500
-	sw $a0,0($t0)
+	
+	li $v0,1
+	syscall
+	
+	sw $a0,0($s3)
 	
 	j begin_loop_vetor_credito
 	
@@ -971,122 +1064,168 @@ cpf_encontrado2:
     jal continua_transacao2
 
 # --------------------------------------------------------------------------------
+# Opção 9 do menu
+# --------------------------------------------------------------------------------
+pagar_conta:
+li $t0,0
+la $t3,vetor_saldo_cliente
+la $t2,vetor_credito_cliente
+   li $v0,4
+   la $a0,pgt_pagar_deb_ou_cred
+   syscall
+   
+   li $v0,5
+   syscall
+   move $t0,$v0
+   
+   beq $t0,1, pagar_por_credito
+   beq $t0,2, pagar_por_debito
+   
+   pagar_por_credito:
+    li $v0,4
+    la $a0,msg_num_conta
+    syscall
+    
+    li $v0,5#recebendo o número da conta
+    syscall
+    
+   move $a1,$v0#conta está em $a1
+   continua_verifica_num_cred:
+   li $s0,0
+    la $s1,num_de_clientes
+    sll $s4,$s0,2 #$s4=4*i
+    
+    beq $s4,$s1,menu
+    
+    la $s5,vetor_numero_cliente
+    #la $s7,tamanho_40_bytes
+    
+    addu $s4,$s4,$s5#acessando o valor na posição de memória
+    lw $a0,0($s4)
+    
+    beq $a1,$a0,continua_verifica_conta_cred
+    bne $a1,$a0,conta_nao_existe
+    addi $s0,$s0,1
+    sw $s0,iterator
+    j continua_verifica_num_cred
+    #j menu
+    
+    continua_verifica_conta_cred:
+    
+   li $v0,4
+   la $a0,msg_pagar_conta
+   syscall
+   
+   li $v0,6
+   syscall
+   
+   move $t1,$v0
+   
+#$s4=4*i = indice que foi achado o num da conta
+    sll $s3,$s0,2 #$t3= o indice em que o numero da conta está *4
+    addu $t4,$s3,$t2 #$t4 recebe a posição de memoria dos saldos + 4*i
+    lw $t5,0($t4)
+    
+    
+    sub $t5,$t5,$t1 #pegando o valor que já tem armazenado e somando com o lido
+    blez $t5,impossivel_pagar_conta_cred
+
+    
+    sw $t5,0($t4)
+    
+    li $v0,4
+    la $a0,conta_paga
+    syscall
+    
+    jal menu
+    
+#-------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
+#     PAGAR POR DÉBITO    
+#-------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
+
+
+    pagar_por_debito:
+    li $v0,4
+    la $a0,msg_num_conta
+    syscall
+    
+    li $v0,5#recebendo o número da conta
+    syscall
+    
+   move $a1,$v0#conta está em $a1
+   continua_verifica_num_deb:
+   li $s0,0
+    la $s1,num_de_clientes
+    sll $s4,$s0,2 #$s4=4*i
+    
+    beq $s4,$s1,menu
+    
+    la $s5,vetor_numero_cliente
+    #la $s7,tamanho_40_bytes
+    
+    addu $s4,$s4,$s5#acessando o valor na posição de memória
+    lw $a0,0($s4)
+    
+    beq $a1,$a0,continua_verifica_conta_deb
+    bne $a1,$a0,conta_nao_existe
+    addi $s0,$s0,1
+    sw $s0,iterator
+    j continua_verifica_num_cred
+    #j menu
+    
+    continua_verifica_conta_deb:
+    
+   li $v0,4
+   la $a0,msg_pagar_conta
+   syscall
+   
+   li $v0,6
+   syscall
+   
+   move $t1,$v0
+   
+#$s4=4*i = indice que foi achado o num da conta
+    sll $s3,$s0,2 #$t3= o indice em que o numero da conta está *4
+    addu $t4,$s3,$t3 #$t4 recebe a posição de memoria dos saldos + 4*i do vetor de SALDO
+    lw $t5,0($t4)
+    
+    sub $t5,$t5,$t1 #pegando o valor que já tem armazenado e somando com o lido
+    blez $t5,impossivel_pagar_conta_deb #se a o valor do saldo do usuário for 0,aparece mensagem de erro
+    
+    sw $t5,0($t4)
+    
+    li $v0,4
+    la $a0,conta_paga
+    syscall
+    
+    jal menu
+    
+    impossivel_pagar_conta_deb:
+    
+    li $v0,4
+    la $a0,msg_impossivel_pagar_conta_deb
+    syscall 
+    
+    j menu
+    
+    impossivel_pagar_conta_cred:
+    
+    li $v0,4
+    la $a0,msg_impossivel_pagar_conta_cred
+    syscall 
+    
+    j menu
+    
+    
+
+# --------------------------------------------------------------------------------
 # Funções de manipulação de string "String.h"
 # --------------------------------------------------------------------------------
 strcmp:
 main_funcao:
- # pegando a string que foi lida
- #pegar o vetor específico e a quantidade que foi cadastrada no vetor
-    la $t6,str1
-    move $t2,$t6
-    move    $t2,$a0#guaradando o valor(no caso cpf)
-    #sw $t2,str1
-    #lw $t2,str1
-    
-    la $t4,num_de_clientes# guardando a quantidade de elementos no vetor no caso cpf
-#    move $s3,$zero
-    la $a2,vetor_cpf_cliente#guardando o vetor dos elementos(no caso cpf)
-    #move $s3,$a2
-    
-    la $s2,str1
-    
-    #move $t2,$s2
-    
-#    la $a3,str2
-    
-    
-    #quando ele sai de getstr o nome está guardado em $t2
 
-
-# loop de comparação de strings (como strcmp)
-cmploop:
-
-    lw $t5,iterator2
-    beq $t5,$t4,reseta_vetor
-    
-    #la $s0,str2
-    la $t3,str2
-    
-    sll $t7,$t5,2#$t6=4i
-    addu $t7,$t7,$a2
-    lw $s0,0($t7)
-    #move $t3,$s0
-    #sw $s0,str2 #guardando a palavra em str2
-    #move $t3,$s0
-    
-    #la $a0,str2
-    
- #  la $s0,str2
-    #move $s0,$a3
-    continua_funcao:
-    
-    
-    lb      $t2,($t6)                   # obtenha o próximo caractere de str1
-    lb      $t3,($s0)                   # obtenha o próximo caractere dos nomes do vetor
-    
-    bne $t2, $t3, pula_string           # se são diferentes, pula para pula_string
-    beq $t3, $zero, cmpeq               # quando chegar no caractere nulo, pula para cmpeq
-    beq $t2,$zero,cmpeq			#quando as duas variáveis chegarem em 0, acaba o código
-    beq $t3,$t2,pula_caracter
-
-    
-
-    j continua_funcao                          # se os caracteres são iguais, continue para o próximo    
-    
-    j cmploop
-    
-    pula_string:
-    addi $t5,$t5,1
-    sw $t5,iterator2
-
-    li $v0,4
-    la $a0,msg_pula_string
-    syscall
-    
-    j cmploop
-    
-    reseta_vetor:
-    li $t5,0
-    sw $t5,iterator2
-    j main_funcao
-    
-    pula_caracter:
-    addi    $s2,$s2,1                   # aponte para o próximo caractere
-    addi    $s0,$s0,1                	# aponte para o próximo caractere
-    
-    li $v0,4
-    la $a0,msg_pulou_carac
-    syscall
-    jal continua_funcao
-    
-# as strings _não_ são iguais -- envie mensagem
-cmpne:
-    la      $a0,nemsg
-    li      $v0,4
-    syscall
-    j       exit
-
-# as strings _são_ iguais -- envie mensagem
-cmpeq:
-    la      $a0,eqmsg
-    li      $v0,4
-    syscall
-    j       exit
-
-fora_de_range:
-	li $v0,4
-	la $a0,msg_fora_range
-	syscall
-# getstr -- solicite e leia a string do usuário
-#
-# argumentos:
-#   t2 -- endereço do buffer de string
-
-
-# saia do programa
-exit:
-    li      $v0,10
-    syscall
 
 
 pula_linha:
