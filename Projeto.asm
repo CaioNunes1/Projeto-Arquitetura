@@ -133,16 +133,11 @@ criar_conta:
 move $s3,$zero
 lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
 
-	li $v0,1
-   	move $a0,$a3
-   	syscall
    	
 	sll $t7,$a3,2#fazendo $t7= 4*i para guardar corretamente os valores na posiÃ§Ã£o do vetor
 	#addi $t3,$t3,1
 	#sw $t3,num_de_clientes
-	li $v0,1
-   	move $a0,$a3
-   	syscall
+
    	
 	beq $a3,50,menu #se o numero de clientes for igual a zero termina o programa
 	
@@ -1140,7 +1135,7 @@ la $t2,vetor_credito_cliente
    la $a0,msg_pagar_conta
    syscall
    
-   li $v0,6
+   li $v0,5
    syscall
    
    move $t1,$v0
@@ -1205,7 +1200,7 @@ la $t2,vetor_credito_cliente
    la $a0,msg_pagar_conta
    syscall
    
-   li $v0,6
+   li $v0,5
    syscall
    
    move $t1,$v0
