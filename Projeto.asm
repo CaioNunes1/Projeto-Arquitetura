@@ -30,6 +30,7 @@ msg_impossivel_pagar_conta_deb:.asciiz "Impossível pagar conta com saldo 0."
 msg_impossivel_pagar_conta_cred:.asciiz "Impossível pagar conta, todo o seu limite já foi usado 0."
 credito:.asciiz " Crédito"
 debito:.asciiz " Débito"
+valor_1500:.word 1500
 
 msg_avisando_sobre_funcao_de_imprimir_saldo_e_cred:.asciiz"Você na parte de imprimir seu saldo e crédito disponível\n"
 # Adicione a variÃ¡vel para armazenar o nÃºmero da conta atual
@@ -80,17 +81,30 @@ str2:       .space      40
 .globl main
 
 main:
-    j menu
+
+    
+    jal setar_valores_vetor_de_credito_dos_clientes
+    continua_setar:
+    move $a3,$zero
+    sw $a3,num_de_clientes
+    
+    jal setar_valores_vetor_de_saldo_dos_clientes
+    
+    
+    jal menu
+    
 
 menu:
     # Exibir o menu
-    jal setar_valores_vetor_de_saldo_dos_clientes
-    jal setar_valores_vetor_de_credito_dos_clientes
+    #jal setar_valores_vetor_de_saldo_dos_clientes
+    #jal setar_valores_vetor_de_credito_dos_clientes
     
     continua_menu:
     li $v0, 4
     la $a0, MENU_PROMPT
     syscall
+    
+
     
 
     # Ler a opÃ§Ã£o do usuÃ¡rio
@@ -115,11 +129,22 @@ menu:
 # Opção 1 do menu
 # --------------------------------------------------------------------------------
 criar_conta:
-	lw $s3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
-	sll $t7,$s3,2#fazendo $t7= 4*i para guardar corretamente os valores na posiÃ§Ã£o do vetor
+   	
+move $s3,$zero
+lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
+
+	li $v0,1
+   	move $a0,$a3
+   	syscall
+   	
+	sll $t7,$a3,2#fazendo $t7= 4*i para guardar corretamente os valores na posiÃ§Ã£o do vetor
 	#addi $t3,$t3,1
 	#sw $t3,num_de_clientes
-	beq $s3,50,menu #se o numero de clientes for igual a zero termina o programa
+	li $v0,1
+   	move $a0,$a3
+   	syscall
+   	
+	beq $a3,50,menu #se o numero de clientes for igual a zero termina o programa
 	
 	# Incrementar o nÃºmero da conta atual
     	lw $t1, conta_atual
@@ -181,7 +206,7 @@ criar_conta:
    	#s3 tem o número de clientes
    	la $a2,vetor_cpf_cliente
    	#subi $t3,$t3,1 #verificando se é o primeiro cpf a ser cadastrado
-   	beqz $s3, primeiro_cadastro
+   	beqz $a3, primeiro_cadastro
    	#jal main_funcao
    	
    	#jal verifica_cpf
@@ -193,10 +218,10 @@ criar_conta:
    	
    	# a funÃ§Ã£o verifica_cpf
    	#move $s3,$zero
-   	lw $s3,num_de_clientes
+   	lw $a3,num_de_clientes
    	la $a0,cpf
 #   	subi $t3,$t3,1
-   	sll $t7,$s3,2#$t7=4*indice
+   	sll $t7,$a3,2#$t7=4*indice
    	
    	lw $t0,indice_nomes
    	#colocando denovo o valor de $t7 para ser um multiplo de 4=4i, pois ele mudou de valor quando ele foi para
@@ -212,13 +237,12 @@ criar_conta:
    	add $t6,$t6,$t7#ajeitando e a cada iteraÃ§Ã£o colocando na posiÃ§Ã£o 4i
    	sw $a0,0($t6)
    	
-   	addi $s3,$s3,1
-   	sw $s3,num_de_clientes
+   	addi $a3,$a3,1
+   	sw $a3,num_de_clientes
    	
    	li $v0,1
-   	move $a0,$s3
+   	move $a0,$a3
    	syscall
-   	
     j continua_menu
 
 # --------------------------------------------------------------------------------
@@ -715,7 +739,7 @@ setar_valores_vetor_de_saldo_dos_clientes:
 
 	#se o valor da posição 4i for maior que zero, pula a posição
 	addi $s0,$s0,1#somando o valor do iterador
-	bgtz $a0,begin_loop_vetor_saldo
+	#bgtz $a0,begin_loop_vetor_saldo
 	
 	#se o valor não for maior que zero
 	li $a0,0 #seta aquela posição com valor igual a 0
@@ -726,29 +750,29 @@ setar_valores_vetor_de_saldo_dos_clientes:
 # Funções de setar o as posições não ocupadas do vetor de credito do cliente
 # --------------------------------------------------------------------------------
 setar_valores_vetor_de_credito_dos_clientes:
+move $s3,$zero
 	li $s0,0#4ser o iterador do loop
 	la $t0,vetor_credito_cliente #reg para guardar o vetor de saldo dos clientes
 	
 	begin_loop_vetor_credito:
-	bgt $s0,50,continua_menu#se $s0 for maior que 50
+	bgt $s0,50,continua_setar#se $s0 for maior que 50
 	sll $s2,$s0,2 # $s2 = 4i
 	
-	
+	#li $s3,0
 	addu $s3,$s2,$t0 #4i=4i+ local de memoria do array saldo dos clientes ---> EX: 4+1000
 	lw $a0,0($s3)#recebendo em $a0 o valor da posição do array 0,4,8
 
 	#se o valor da posição 4i for maior que zero, pula a posição
-	addi $s0,$s0,1#somando o valor do iterador
 	
-	bgtz $a0,begin_loop_vetor_credito
+	#bgtz $a0,begin_loop_vetor_credito
 	
 	#se o valor da posição não for maior que zero
 	li $a0,1500 #seta aquela posição com valor igual a 1500
 	
-	li $v0,1
-	syscall
 	
 	sw $a0,0($s3)
+	
+	addi $s0,$s0,1#somando o valor do iterador
 	
 	j begin_loop_vetor_credito
 	
