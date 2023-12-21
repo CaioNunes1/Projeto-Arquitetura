@@ -63,6 +63,7 @@ msg_cpf_nao_existe:.asciiz "CPF não existe ou não encontrado"
 
 iterator:.word 0
 indice_nomes:.word 0
+indice_cpfs:.word 0
 iterador_deposito:.word 0
 
 prompt:     .asciiz     "Digite uma string:"
@@ -216,7 +217,7 @@ lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
    	
    	#lw $a3,num_de_clientes
    	
-   	la $a0,cpf
+   	#la $a0,cpf
 #   	subi $t3,$t3,1
    	#sll $t7,$a3,2#$t7=4*indice
    	
@@ -225,14 +226,14 @@ lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
    	sll $t9,$t0,2 #$t9 = 4*indice
    	addu $a0,$a0,$t9
    	
-   	lw $t0, indice_nomes  # Carrega o índice atual
-	addiu $t0, $t0, 40     # Incrementa o índice
-	sw $t0, indice_nomes  # Armazena o novo índice
-   	
    	#registrador para vetor_cpf_cliente
    	la $t6,vetor_cpf_cliente
    	addu $t6,$t6,$t7#ajeitando e a cada iteraÃ§Ã£o colocando na posiÃ§Ã£o 4i
    	sw $a0,0($t6)
+   	
+   	lw $t0, indice_nomes  # Carrega o índice atual
+	addiu $t0, $t0, 40     # Incrementa o índice
+	sw $t0, indice_nomes  # Armazena o novo índice
    	
    	addi $a3,$a3,1
    	sw $a3,num_de_clientes
@@ -254,16 +255,17 @@ consultar_saldo:
    la $a0,msg_avisando_sobre_funcao_de_imprimir_saldo_e_cred
    syscall
    
-   li $v0,4
+    li $v0,4
     la $a0,msg_num_conta
     syscall
     
     li $v0,5#recebendo o número da conta
     syscall
     
-   move $a1,$v0#conta está em $a1
-   continua_verifica_num_imprim_saldo_e_cred:
-   li $s0,0
+    move $a1,$v0#conta está em $a1
+    li $s0,0
+    continua_verifica_num_imprim_saldo_e_cred:
+    
     la $s1,num_de_clientes
     sll $s4,$s0,2 #$s4=4*i
     
@@ -276,7 +278,7 @@ consultar_saldo:
     lw $a0,0($s4)
     
     beq $a1,$a0,continua_verifica_num_para_imprim
-    bne $a1,$a0,conta_nao_existe
+    beq $s0,$1,conta_nao_existe
     addi $s0,$s0,1
     sw $s0,iterator
     j continua_verifica_num_imprim_saldo_e_cred
@@ -287,7 +289,7 @@ consultar_saldo:
     #$s4=4*i = indice que foi achado o num da conta
     sll $s3,$s0,2 #$t3= o indice em que o numero da conta está *4
     addu $t4,$s3,$t2 #$t4 recebe a posição de memoria dos saldos + 4*i
-    lw $t5,0($t4)
+    lw $t5,0($t4) #carregando o elemento na mesma posição que o número da conta foi achado
     
     move $a0,$t5
     li $v0,1#imprimindo o credito do cliente
@@ -548,6 +550,11 @@ imprimir_vetor:
 # Opção 6 do menu EFETUAR TRANSAÇÕES
 # --------------------------------------------------------------------------------
 efetuar_transacao:
+	li $t0,0
+	la $t3,vetor_saldo_cliente
+   	la $t2,vetor_credito_cliente
+   	li $s7,0
+   
 
 	li $v0,4
 	la $a0,msg_pergunta_tipo_de_transacao
@@ -559,80 +566,97 @@ efetuar_transacao:
 	move $t0,$v0
 	
 	beq $t0,1,transferencia_por_debito
-	#beq $t0,2,pagar_por_credito
+	beq $t0,2,pagar_por_credito
 	
 	transferencia_por_debito:
 	
 	continua3:#continuação do código pra poder retonar de onde tinha parado, no caso retornando para o começo pq não encontrou o cpf
-	li $v0,4
-	la $a0,msg_num_conta#pedindo o cpf do remetente, de quem está irá mandar o valor
-	syscall
 	
-	li $v0,5#recebendo valor
-	syscall
 	
-	move $a0,$v0 #movendo pra $a0 para poder entrar na função
-	
-	jal verifica_cpf_transacao
-	continua_transacao:#se o cpf existir ele volta para o código, se não, aparece uma mensagem de não existente
-	#posição está em $s1, pois passei para ela no verifica_cpf_transacao
-	
-	#quando volta de continua transação o  cpf que existe no vetor está em $s1
-	li $v0, 4
-	move $a0,$s1#imprimindo o cpf só de teste
-	syscall
-	#pela função a posição do cpf do cliente que irá enviar o valor está em $s1
 	
 	li $v0,4
-	#la $a0,msg_pedir_cpf_para_a_conta_destino #mensagem pedindo cpf destino
-	syscall
+    	la $a0,msg_num_conta
+    	syscall
+    
+    	li $v0,5#recebendo o número da conta
+    	syscall
+    
+    	move $a1,$v0#conta está em $a1
+    	li $s0,0
+    	continua_verifica_loop_num_efetuar_trans:
+    	
+    	la $s1,num_de_clientes
+    	sll $s4,$s0,2 #$s4=4*i
+    
+    	beq $s0,$s1,continua_menu
+    
+    	la $s5,vetor_numero_cliente
+    	#la $s7,tamanho_40_bytes
+    
+    	addu $s4,$s4,$s5#acessando o valor na posição de memória
+    	lw $a0,0($s4)
+    
+    	beq $a1,$a0,continua_verifica_num_efetuar_trans
+    	bne $a1,$a0,conta_nao_existe
+    	addi $s0,$s0,1
+    	sw $s0,iterator
+    	j continua_verifica_loop_num_efetuar_trans
+    	#j menu
+    
+    continua_verifica_num_efetuar_trans:
+    
+    #$s4=4*i = indice que foi achado o num da conta
+    sll $s3,$s0,2 #$t3= o indice em que o numero da conta está *4
+    addu $t4,$s3,$t3 #$t4 recebe a posição de memoria dos saldos + 4*i
+    lw $t5,0($t4) #carregando o elemento na mesma posição que o número da conta foi achado
+    
+    #pedindo valor da tranferência
+    li $v0,4
+    la $a0, msg_digite_valor
+    syscall
+    
+    li $v0, 5
+    syscall
+    
+    move $a2,$v0
+    
+    
+    li $v0,4
+    la $a0,msg_num_conta
+    syscall
+    
+    li $v0,5#recebendo o número da conta
+    syscall
+    
+    move $t1,$v0
+    
+    loop_procura_remetente:
+    
+    sll $s6,$s7,2
+    addu $s6,$s6,$s5
+    
+    lw $t7,0($s6)#recebendo números dos clientes 
+    
+    beq $t1,$t7,continua_verifica_num_remetente
+    bne $s7,$t1,conta_nao_existe
+    
+    addi $s7,$s7,1
+    j loop_procura_remetente
 	
-	li $v0,8#recebendo o cpf para conferir novamente se existe
-	syscall
 	
-	move $a0,$v0
-	jal verifica_cpf_transacao2
-	continua_transacao2:
-	#a posição do cpf está armazenado em $s2
-	
-	
-	li $v0,4#mensagem para digitar o valor da transferência
-	la $a0,msg_valor_trans_debito
-	syscall
-	
-	li $v0,7 #recebendo o valor em double
-	syscall
-	
-	move $t0,$v0#passaando o valor da transferência pra $t0
-	
-	la $s3,vetor_saldo_cliente
-	
-	sll $s4,$s1,2 #$s4 recebe a posição do cpf remetente/ do que envia, vezes 4 para poder acessar a posição no vetor
-	
-	addu $s4,$s4,$s3 #$s4 recebe a posição correta para poder pegar pegar o saldo do cliente
-	
-	lw $t1, 0($s4) #acessando a posição do rementente para poder subtrair o valor, $t1 recebe o saldo do cpf específico
-	
-	sub $t1,$t1,$t0#subtraindo o valor do que foi enviado
-	
-	sw $t1,0($s4)# guardando o valor subtraído na conta do remetente
-	
-	sll $s5,$s2,2 #s5 recebe 4* posição do destinatário da transferência
-	
-	addu $s5,$s5,$s3
-	
-	lw $t2,0($5)#guardando em $t2 o valor do saldo do destinatário
-	
-	add $t2,$t2,$t0#somando os valores
-	
-	sw $t2,0($s5) #guardando o valor da soma da transferencia para a conta do destinatário no vetor
-	
-	li $v0,4#mensagem de transfência feita com sucesso
-	la $a0,msg_trans_com_sucesso
-	syscall
-	
-	
-	
+    continua_verifica_num_remetente:
+    
+    sll $t9,$s7,2#$t9=4* indice do numero encontrado
+    addu $t9,$t9,$t3
+    lw $t8,0($t9)
+    
+    add $t8,$t8,$a2 #somando o valor enviado pelo remetente com o do destinatário
+    sw $t8,0($t9)
+    
+    sub $t5,$t5,$a2#subtraindo o valor do saldo de quem enviou a transferência
+    sw $t5,0($t4)
+    
+    jal continua_menu
 
 # --------------------------------------------------------------------------------
 # Opção 7 do menu
@@ -1120,35 +1144,7 @@ opcao_invalida:
 
     j menu
     
-cpf_ja_existente:
-    # Mensagem para opcao invalida
-    li $v0, 4
-    la $a0,msg_cpf_ja_existente
-    syscall
 
-	#jal continua
-    
-
-cpf_nao_existente:
-	li $v0, 4
-   	la $a0,msg_cpf_nao_existe
-    	syscall
-
-    	jal continua3
-
-cpf_encontrado:
-    li $v0,4
-    la $a0,cpf_existe
-    syscall
-    
-    jal continua_transacao
-    
-cpf_encontrado2:
-    li $v0,4
-    la $a0,cpf_existe
-    syscall
-    
-    jal continua_transacao2
 
 # --------------------------------------------------------------------------------
 # Opção 9 do menu
@@ -1321,64 +1317,3 @@ pula_linha:
 	syscall
 	jr $ra		
 			
-verifica_cpf:
-	#pega o cpf e move para $t0
-	move $t0,$a0
-	
-	li $t1,0
-	lw $t2,num_de_clientes
-	la $s1,vetor_cpf_cliente
-	
-	loop_verifica:
-	#beq $t1,$t2,continua
-	sll $t3,$t1,2 #$t3=4i
-	
-	addu $t3,$t3,$s1
-	
-	lw $a0,0($t3)
-	
-	beq $t0,$a0,cpf_ja_existente
-	addi $t1,$t1,1
-	j loop_verifica
-	
-verifica_cpf_transacao:
-	#pega o cpf e move para $t0
-	move $t0,$a0
-	
-	li $t1,0
-	lw $t2,num_de_clientes
-	la $s1,vetor_cpf_cliente
-	
-	loop_verifica_cpf_transacao:
-	beq $t1,$t2,cpf_nao_existente
-	sll $t3,$t1,2 #$t3=4i
-	
-	addu $t3,$t3,$s1
-	
-	lw $a0,0($t3)
-	
-	move $s1,$t1#passando a posição para $t1, paraa guardar a posição caso o cpf seja encontrado
-	beq $t0,$a0,cpf_encontrado
-	addi $t1,$t1,1
-	j loop_verifica_cpf_transacao
-
-verifica_cpf_transacao2:
-	#pega o cpf e move para $t0
-	move $s0,$a0
-	
-	li $t1,0
-	lw $t2,num_de_clientes
-	la $s1,vetor_cpf_cliente
-	
-	loop_verifica_cpf_transacao2:
-	beq $t1,$t2,cpf_nao_existente
-	sll $t3,$t1,2 #$t3=4i
-	
-	addu $t3,$t3,$s1
-	
-	lw $a0,0($t3)
-	
-	beq $s0,$a0,cpf_encontrado2
-	move $s2,$t1 #$s2 recebe a posição a posição em que o cpf do destinatário está
-	addi $t1,$t1,1
-	j loop_verifica_cpf_transacao2
