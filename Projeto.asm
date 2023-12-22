@@ -1,15 +1,13 @@
 .data
-MENU_PROMPT:   .asciiz "Escolha uma opÃ§Ã£o:\n1. Criar conta\n2. Saldo\n3. Depósito\n4. Saque\n5. Imprimir vetor\n6. Efetuar trânsação\n9. Pagar Conta\n10. Sair\nOpÃ§Ã£o: "
-SALDO_MSG:     .asciiz "Seu saldo Ã©: $"
+MENU_PROMPT:   .asciiz "Escolha uma opção:\n1. Criar conta\n2. Saldo\n3. Depósito\n4. Saque\n5. Imprimir vetor\n6. Efetuar trânsação\n7. Pagar Conta\n8. Sair\nOpção: "
+SALDO_MSG:     .asciiz "Seu saldo : $"
 DEPOSITO_MSG:  .asciiz "Digite o valor do depÃ³sito: $"
 SAQUE_MSG:     .asciiz "Digite o valor do saque: $"
-INVALID_MSG:   .asciiz "OpÃ§Ã£o invÃ¡lida. Tente novamente.\n"
+INVALID_MSG:   .asciiz "Opção inválida. Tente novamente.\n"
 QUEBRA_LINHA:  .asciiz "\n"
 
 msg_Pedir_Nome: .asciiz "Digite seu nome:\n"
-nomes: .space 2000
-cpf: .space 2000
-msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente nÃºmeros):\n"
+msg_Pedir_CPF: .asciiz "Digite o seu CPF (Somente números):\n"
 msg_pedir_num_da_conta_de_conta_destino:.asciiz "Digite o número da conta de destino:"
 
 msg_pergunta_tipo_de_transacao:.asciiz"Qual tipo de transação deseja fazer.\n1-Por Débito.\n2-Por crédito"
@@ -30,19 +28,30 @@ msg_impossivel_pagar_conta_deb:.asciiz "Impossível pagar conta com saldo 0."
 msg_impossivel_pagar_conta_cred:.asciiz "Impossível pagar conta, todo o seu limite já foi usado 0."
 credito:.asciiz " Crédito"
 debito:.asciiz " Débito"
+
+msg_pula_string:.asciiz "pulou de string\n"
+msg_pulou_carac:.asciiz "pulou o caracter\n"
 valor_1500:.word 1500
 
+msg_cpf_ja_existente:.asciiz "Impossí­vel criar conta, esse cpf já foi cadastrado!"
+cpf_existe:.asciiz "CPF existente"
+msg_cpf_nao_existe:.asciiz "CPF não existe ou não encontrado"
+
 msg_avisando_sobre_funcao_de_imprimir_saldo_e_cred:.asciiz"Você na parte de imprimir seu saldo e crédito disponível\n"
-# Adicione a variÃ¡vel para armazenar o nÃºmero da conta atual
+# Adicione a variável para armazenar o número da conta atual
+
+
+nomes: .space 2000
+cpf: .space 2000
 conta_atual: .word 10000
-vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada cliente ocupa 4 posiÃ§Ãµes)
+vetor_nomes_clientes: .space 200   # Espaco para armazenar ate 50 clientes (cada cliente ocupa 4 posissões)
 vetor_numero_cliente: .space 200
 vetor_cpf_cliente: .space 200
 vetor_saldo_cliente: .space 200
 vetor_credito_cliente: .space 200
 num_de_clientes: .word 0
 
-# Vetores para guardar dados de transaÃ§Ãµes de debito
+# Vetores para guardar dados de transações de débito
 vetor_conta_origem_debito: .space 1000
 vetor_conta_destino_debito: .space 1000
 vetor_valor_trasacao_debito: .space 1000
@@ -54,29 +63,16 @@ vetor_conta_origem_credito: .space 1000
 vetor_conta_destino_credito: .space 1000
 vetor_valor_trasacao_credito: .space 1000
 vetor_data_transacao_credito: .space 1000
+
 num_de_transacoes_credito: .word 0
-
-msg_cpf_ja_existente:.asciiz "ImpossÃ­vel criar conta, esse cpf jÃ¡ foi cadastrado!"
-cpf_existe:.asciiz "CPF existente"
-msg_cpf_nao_existe:.asciiz "CPF não existe ou não encontrado"
-
 
 iterator:.word 0
 indice_nomes:.word 0
 indice_cpfs:.word 0
 iterador_deposito:.word 0
+iterator2:.word 0
 
-prompt:     .asciiz     "Digite uma string:"
-dot:        .asciiz     "."
-eqmsg:      .asciiz     "strings sao iguais\n"
-nemsg:      .asciiz     "strings nao sao iguais\n"
-msg_fora_range:.asciiz "fora de range\n"
-msg_pula_string:.asciiz "pulou de string\n"
-msg_pulou_carac:.asciiz "pulou o caracter\n"
-	iterator2:.word 0
 
-str1:       .space      40
-str2:       .space      40
 .data
 .text
 .globl main
@@ -120,10 +116,8 @@ menu:
     beq $t0, 4, realizar_saque
     beq $t0, 5, imprimir_vetor # apenas de teste
     beq $t0, 6, efetuar_transacao
-    beq $t0, 7, imprimir_transacoes_debito
-    beq $t0, 8, imprimir_transacoes_credito
-    beq $t0, 9, pagar_conta
-    beq $t0, 10, sair
+    beq $t0, 7, pagar_conta
+    beq $t0, 8, sair
     j opcao_invalida
 
 # --------------------------------------------------------------------------------
@@ -131,8 +125,8 @@ menu:
 # --------------------------------------------------------------------------------
 criar_conta:
    	
-move $s3,$zero
-lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
+	move $s3,$zero
+	lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
 
    	
 	sll $t7,$a3,2#fazendo $t7= 4*i para guardar corretamente os valores na posiÃ§Ã£o do vetor
@@ -140,7 +134,7 @@ lw $a3,num_de_clientes #carregando o nÃºmero de clientes disponÃ­veis
 	#sw $t3,num_de_clientes
 
    	
-	beq $a3,50,menu #se o numero de clientes for igual a zero termina o programa
+	beq $a3,50,sair #se o numero de clientes for igual a zero termina o programa
 	
 	# Incrementar o nÃºmero da conta atual
     	lw $t1, conta_atual
@@ -461,7 +455,7 @@ realizar_saque:
     li $v0,1
     syscall 
     
-    sw $t1,0($t4)
+    sw $t5,0($t4)
     
     jal pula_linha
     li $v0,4
